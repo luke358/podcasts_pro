@@ -1,3 +1,5 @@
+import 'dart:convert';
+
 import 'package:podcasts_pro/http/podcast_service.dart';
 import 'package:xml/xml.dart' as xml;
 
@@ -75,4 +77,10 @@ class Subscription {
       rssUrl: map['rssUrl'],
     );
   }
+  factory Subscription.fromJson(String jsonString) {
+    final map = json.decode(jsonString) as Map<String, dynamic>;
+    return Subscription.fromMap(map);
+  }
+
+  String toJson() => json.encode(toMap());
 }

@@ -1,16 +1,30 @@
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
+import 'package:podcasts_pro/pages/episode_detail.dart';
 import 'package:podcasts_pro/pages/main/player_controller.dart';
 import 'package:intl/intl.dart'; // Import intl package
+import 'package:podcasts_pro/pages/subscription_detail.dart';
+import 'package:podcasts_pro/widgets/play_button.dart';
 import 'package:podcasts_pro/widgets/progress_bar.dart'; // Import ProgressBar component
 
-class PlayerPage extends StatelessWidget {
-  PlayerPage({super.key});
+class PlayerPage extends StatefulWidget {
+  const PlayerPage({super.key});
+
+  @override
+  _PlayerPageState createState() => _PlayerPageState();
+}
+
+class _PlayerPageState extends State<PlayerPage>
+    with AutomaticKeepAliveClientMixin<PlayerPage> {
   final PlayerController playerController = Get.find<PlayerController>();
 
   @override
+  bool get wantKeepAlive => true;
+
+  @override
   Widget build(BuildContext context) {
+    super.build(context);
     return Scaffold(
       appBar: AppBar(
         leading: IconButton(
@@ -64,60 +78,84 @@ class PlayerPage extends StatelessWidget {
                       textAlign: TextAlign.center,
                     ),
                     const SizedBox(height: 8),
-                    Text(
-                      episode.title,
-                      style: const TextStyle(
-                        fontSize: 18,
-                        fontWeight: FontWeight.bold,
+                    GestureDetector(
+                      onTap: () {
+                        Navigator.push(
+                          context,
+                          MaterialPageRoute(
+                            builder: (context) =>
+                                EpisodeDetailPage(episode: episode),
+                          ),
+                        );
+                      },
+                      child: Text(
+                        episode.title,
+                        style: const TextStyle(
+                          fontSize: 18,
+                          fontWeight: FontWeight.bold,
+                        ),
+                        textAlign: TextAlign.center,
                       ),
-                      textAlign: TextAlign.center,
                     ),
                     const SizedBox(height: 30),
                     // Subscription 信息
-                    Row(
-                      crossAxisAlignment: CrossAxisAlignment.center,
-                      mainAxisAlignment: MainAxisAlignment.center,
-                      children: [
-                        ClipRRect(
-                          borderRadius: BorderRadius.circular(10),
-                          child: CachedNetworkImage(
-                            imageUrl: episode.subscription.imageUrl,
-                            httpHeaders: const {
-                              'User-Agent':
-                                  'Mozilla/5.0 (Windows NT 10.0; Win64; x64)',
-                            },
-                            placeholder: (context, url) =>
-                                const CircularProgressIndicator(),
-                            errorWidget: (context, url, error) =>
-                                const Icon(Icons.error),
-                            width: 50,
-                            height: 50,
-                            fit: BoxFit.cover,
+                    GestureDetector(
+                      onTap: () {
+                        Navigator.push(
+                          context,
+                          MaterialPageRoute(
+                            builder: (context) => SubscriptionDetailPage(
+                              rssUrl: episode.subscription.rssUrl, // 传递 rssUrl
+                              title: episode.subscription.title,
+                            ),
                           ),
-                        ),
-                        const SizedBox(width: 16),
-                        Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: [
-                            const Text(
-                              '单集来自',
-                              style: TextStyle(
-                                fontSize: 14,
-                                color: Colors.grey,
-                              ),
+                        );
+                      },
+                      child: Row(
+                        crossAxisAlignment: CrossAxisAlignment.center,
+                        mainAxisAlignment: MainAxisAlignment.center,
+                        children: [
+                          ClipRRect(
+                            borderRadius: BorderRadius.circular(10),
+                            child: CachedNetworkImage(
+                              imageUrl: episode.subscription.imageUrl,
+                              httpHeaders: const {
+                                'User-Agent':
+                                    'Mozilla/5.0 (Windows NT 10.0; Win64; x64)',
+                              },
+                              placeholder: (context, url) =>
+                                  const CircularProgressIndicator(),
+                              errorWidget: (context, url, error) =>
+                                  const Icon(Icons.error),
+                              width: 50,
+                              height: 50,
+                              fit: BoxFit.cover,
                             ),
-                            const SizedBox(height: 4),
-                            Text(
-                              episode.subscription.title,
-                              style: const TextStyle(
-                                fontSize: 16,
-                                fontWeight: FontWeight.bold,
+                          ),
+                          const SizedBox(width: 16),
+                          Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              const Text(
+                                '单集来自',
+                                style: TextStyle(
+                                  fontSize: 14,
+                                  color: Colors.grey,
+                                ),
                               ),
-                            ),
-                          ],
-                        ),
-                      ],
-                    ),
+                              const SizedBox(height: 4),
+                              Text(
+                                episode.subscription.title,
+                                style: const TextStyle(
+                                  fontSize: 16,
+                                  fontWeight: FontWeight.bold,
+                                ),
+                              ),
+                            ],
+                          ),
+                        ],
+                      ),
+                    )
                   ],
                 ),
               ),
@@ -191,22 +229,7 @@ class PlayerPage extends StatelessWidget {
                           },
                         ),
                         const SizedBox(width: 16),
-                        Obx(() {
-                          final isPlaying = playerController.isPlaying.value;
-                          return IconButton(
-                            icon: Icon(
-                              isPlaying ? Icons.pause : Icons.play_arrow,
-                              size: 48,
-                            ),
-                            onPressed: () {
-                              if (isPlaying) {
-                                playerController.pause();
-                              } else {
-                                playerController.play();
-                              }
-                            },
-                          );
-                        }),
+                        PlayButton(),
                         const SizedBox(width: 16),
                         IconButton(
                           icon: const Icon(Icons.skip_next),

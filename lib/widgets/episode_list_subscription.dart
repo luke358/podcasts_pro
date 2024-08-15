@@ -3,14 +3,13 @@ import 'package:cached_network_image/cached_network_image.dart';
 import 'package:podcasts_pro/models/episode.dart';
 import 'package:intl/intl.dart';
 import 'package:get/get.dart';
-import 'package:podcasts_pro/pages/episode_detail.dart';
 import 'package:podcasts_pro/pages/main/player_controller.dart';
 
-class EpisodeListItem extends StatelessWidget {
+class EpisodeListSubscription extends StatelessWidget {
   final Episode episode;
   final PlayerController playerController;
 
-  const EpisodeListItem({
+  const EpisodeListSubscription({
     super.key,
     required this.episode,
     required this.playerController,
@@ -58,7 +57,7 @@ class EpisodeListItem extends StatelessWidget {
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             Text(
-              episode.description,
+              episode.subscription.title,
               maxLines: 2,
               overflow: TextOverflow.ellipsis,
               style: const TextStyle(color: Colors.black54),
@@ -76,7 +75,7 @@ class EpisodeListItem extends StatelessWidget {
                     if (isCurrentEpisode && isPlaying) {
                       playerController.pause();
                     } else {
-                      playerController.playEpisode(episode);
+                      // playerController.playEpisode(episode);
                     }
                   },
                   icon: isCurrentEpisode
@@ -115,14 +114,6 @@ class EpisodeListItem extends StatelessWidget {
             ),
           ],
         ),
-        onTap: () {
-          Navigator.push(
-            context,
-            MaterialPageRoute(
-              builder: (context) => EpisodeDetailPage(episode: episode),
-            ),
-          );
-        },
       );
     });
   }

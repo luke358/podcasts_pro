@@ -80,8 +80,7 @@ class PlaylistItem extends StatelessWidget {
               if (isPlaying) {
                 playerController.pause(); // Pause if currently playing
               } else {
-                playerController
-                    .playEpisode(episode); // Play if currently paused
+                playerController.play(); // Play if currently paused
               }
             },
           ),

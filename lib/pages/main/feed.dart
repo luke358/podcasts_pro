@@ -21,36 +21,50 @@ class _FeedPageState extends State<FeedPage>
   final SubscriptionController _subscriptionController =
       Get.find<SubscriptionController>();
   late PodcastManager _podcastManager;
+  List<Episode> _episodes = [];
+  bool _isLoading = true;
 
   @override
   void initState() {
     super.initState();
     _podcastManager = PodcastManager();
+    _initialLoadData();
+
+    // 监听订阅数据变化
+    ever(_subscriptionController.subscriptions, (_) {
+      _loadData();
+    });
   }
 
-  Future<List<List<Episode>>> _loadFeedList() async {
+  // 初次加载数据
+  Future<void> _initialLoadData() async {
+    setState(() {
+      _isLoading = true;
+    });
+    await _loadData();
+    setState(() {
+      _isLoading = false;
+    });
+  }
+
+  // 加载数据（不显示loading）
+  Future<void> _refreshData() async {
+    await _loadData(forceRefresh: true);
+  }
+
+  Future<void> _loadData({bool forceRefresh = false}) async {
     try {
       final subscriptions = _subscriptionController.subscriptions;
-
       if (subscriptions.isEmpty) {
-        return Future.error(
-            'No subscriptions found. Please add some subscriptions.');
+        return;
       }
 
-      return _podcastManager.fetchAllEpisodes();
-    } catch (e) {
-      print('Error loading feed list: $e');
-      return Future.error('Error loading feed list: $e');
-    }
-  }
-
-  Future<void> _refreshData() async {
-    try {
-      final refreshedEpisodes = await _podcastManager.fetchAllEpisodes(
-        forceRefresh: true,
+      final fetchedEpisodes = await _podcastManager.fetchAllEpisodes(
+        forceRefresh: forceRefresh,
         useCacheOnError: true,
       );
-      if (refreshedEpisodes.isEmpty || refreshedEpisodes[0].isEmpty) {
+
+      if (fetchedEpisodes.isEmpty || fetchedEpisodes[0].isEmpty) {
         ScaffoldMessenger.of(context).showSnackBar(
           const SnackBar(
             content:
@@ -59,13 +73,13 @@ class _FeedPageState extends State<FeedPage>
         );
       } else {
         setState(() {
-          // Only update the future if successful data is fetched
+          _episodes = fetchedEpisodes.expand((e) => e).toList();
         });
       }
     } catch (e) {
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
-          content: Text('Error refreshing data: $e'),
+          content: Text('Error loading data: $e'),
         ),
       );
     }
@@ -99,47 +113,32 @@ class _FeedPageState extends State<FeedPage>
           ),
         ],
       ),
-      body: Obx(() {
-        if (_subscriptionController.subscriptions.isEmpty) {
-          return Center(
-            child: Column(
-              mainAxisSize: MainAxisSize.min,
-              children: [
-                const Text('No subscriptions found'),
-                const SizedBox(height: 16),
-                ElevatedButton(
-                  onPressed: _navigateToAddSubscriptions,
-                  child: const Text('Add Subscriptions'),
-                ),
-              ],
-            ),
-          );
-        }
-
-        return RefreshIndicator(
-          onRefresh: _refreshData,
-          child: FutureBuilder<List<List<Episode>>>(
-            future: _loadFeedList(),
-            builder: (context, snapshot) {
-              if (snapshot.connectionState == ConnectionState.waiting) {
-                return const Center(child: CircularProgressIndicator());
-              } else if (snapshot.hasError) {
+      body: _isLoading
+          ? const Center(child: CircularProgressIndicator())
+          : Obx(() {
+              if (_subscriptionController.subscriptions.isEmpty) {
                 return Center(
-                  child: Text('Error loading feed list: ${snapshot.error}'),
-                );
-              } else if (!snapshot.hasData || snapshot.data!.isEmpty) {
-                return const Center(child: Text('No episodes found'));
-              } else {
-                final flatEpisodes = snapshot.data!.expand((e) => e).toList();
-                return EpisodeList(
-                  episodes: flatEpisodes,
-                  playerController: _playerController,
+                  child: Column(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      const Text('No subscriptions found'),
+                      const SizedBox(height: 16),
+                      ElevatedButton(
+                        onPressed: _navigateToAddSubscriptions,
+                        child: const Text('Add Subscriptions'),
+                      ),
+                    ],
+                  ),
                 );
               }
-            },
-          ),
-        );
-      }),
+              return RefreshIndicator(
+                onRefresh: _refreshData,
+                child: EpisodeList(
+                  episodes: _episodes,
+                  playerController: _playerController,
+                ),
+              );
+            }),
     );
   }
 

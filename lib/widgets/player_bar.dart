@@ -4,6 +4,7 @@ import 'package:get/get.dart';
 import 'package:podcasts_pro/pages/main/player_controller.dart';
 import 'package:podcasts_pro/pages/player.dart';
 import 'package:podcasts_pro/pages/playlist.dart';
+import 'package:podcasts_pro/widgets/play_button.dart';
 import 'package:podcasts_pro/widgets/playlist_item.dart';
 
 class PlayerBar extends StatelessWidget {
@@ -79,19 +80,8 @@ class PlayerBar extends StatelessWidget {
                 // Right: Play, Playlist Icons
                 Row(
                   children: [
-                    IconButton(
-                      icon: Icon(
-                        playerController.isPlaying.value
-                            ? Icons.pause
-                            : Icons.play_arrow,
-                      ),
-                      onPressed: () {
-                        if (playerController.isPlaying.value) {
-                          playerController.pause();
-                        } else {
-                          playerController.play();
-                        }
-                      },
+                    PlayButton(
+                      size: 25,
                     ),
                     const SizedBox(width: 8.0),
                     IconButton(

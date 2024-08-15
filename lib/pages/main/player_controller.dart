@@ -1,9 +1,11 @@
+import 'dart:async';
 import 'dart:collection';
 import 'dart:convert';
 
+import 'package:audio_service/audio_service.dart';
 import 'package:get/get_rx/src/rx_types/rx_types.dart';
 import 'package:get/get_state_manager/src/simple/get_controllers.dart';
-import 'package:just_audio/just_audio.dart';
+import 'package:podcasts_pro/audio/my_audio_handler.dart';
 import 'package:podcasts_pro/models/episode.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
@@ -11,8 +13,11 @@ import 'package:shared_preferences/shared_preferences.dart';
 const int MAX_PLAYLIST_LENGTH = 100;
 
 class PlayerController extends GetxController {
-  final AudioPlayer _audioPlayer = AudioPlayer();
+  late MyAudioHandler _audioHandler;
+
   var isPlaying = false.obs;
+  var isLoading = false.obs; // 用于控制loading显示状态
+
   var playlist = <Episode>[].obs;
   var currentEpisode = Rxn<Episode>();
 
@@ -27,35 +32,90 @@ class PlayerController extends GetxController {
   var favoriteEpisodes = <Episode>[].obs;
 
   PlayerController() {
-    _audioPlayer.positionStream.listen((position) {
+    _initAudioService();
+  }
+
+  Timer? _debounceTimer;
+  void _onPlaybackStateChanged(PlaybackState state) {
+    if (_debounceTimer?.isActive ?? false) _debounceTimer?.cancel();
+
+    _debounceTimer = Timer(const Duration(milliseconds: 200), () {
+      switch (state.processingState) {
+        case AudioProcessingState.buffering:
+        case AudioProcessingState.loading:
+          isLoading.value = true;
+          print("loading 加载中");
+          break;
+        case AudioProcessingState.ready:
+        case AudioProcessingState.completed:
+        case AudioProcessingState.error:
+          isLoading.value = false;
+          print("loading 加载完成");
+          break;
+        default:
+          isLoading.value = false;
+          print("loading 加载完成");
+      }
+    });
+  }
+
+  Future<void> _initAudioService() async {
+    _audioHandler = await AudioService.init(
+      builder: () => MyAudioHandler(),
+      config: const AudioServiceConfig(
+        androidNotificationChannelId: 'com.luke358.podcasts_pro.audio',
+        androidNotificationChannelName: 'Podcasts Pro Audio Service',
+        androidNotificationOngoing: true,
+        androidStopForegroundOnPause: true,
+      ),
+    );
+
+    _audioHandler.playbackState.listen((state) {
+      isPlaying.value = state.playing;
+      playbackSpeed.value = state.speed;
+
+      _onPlaybackStateChanged(state);
+
+      if (state.processingState == AudioProcessingState.completed) {
+        if (isPlaying.value) {
+          _audioHandler.pause();
+          _handlePlaybackCompletion();
+        }
+      }
+    });
+    AudioService.position.listen((position) {
       currentPosition.value = position;
-      if (currentEpisode.value != null && position.inSeconds >= 3) {
+      if (currentEpisode.value != null && isPlaying.value) {
         _savePlaybackPosition(currentEpisode.value!.audioUrl!, position);
       }
     });
 
-    _audioPlayer.playbackEventStream.listen((event) {
-      isPlaying.value = _audioPlayer.playing;
-    });
+    await Future.wait([
+      loadPlaybackSpeed(),
+      loadFavoriteEpisodes(),
+      loadPlaylist(),
+      loadPlaybackPositions(),
+      loadListenHistory(),
+      loadCurrentEpisode()
+    ]);
+    if (currentEpisode.value != null) {
+      await _initializeAudioPlayer();
+    }
+  }
 
-    _audioPlayer.playerStateStream.listen((state) {
-      if (state.processingState == ProcessingState.completed) {
-        _handlePlaybackCompletion();
+  Future<void> _initializeAudioPlayer() async {
+    if (currentEpisode.value != null) {
+      try {
+        final episode = currentEpisode.value!;
+        await _audioHandler.playMediaItem(mediaItemFromEpisode(episode));
+        currentPosition.value =
+            playbackPositions[episode.audioUrl] ?? Duration.zero;
+        // 需要加一个 loading，否则在页面打开的时候，如果上面还没有完成，立即播放会出现错误
+        await seek(currentPosition.value);
+      } catch (e) {
+        print('Error initializing audio player: $e');
       }
-    });
-
-    // 加载播放速度
-    loadPlaybackSpeed();
-    loadFavoriteEpisodes();
-
-    loadPlaylist();
-    loadPlaybackPositions();
-    loadListenHistory(); // 加载收听记录
-    loadCurrentEpisode().then((_) {
-      if (currentEpisode.value != null) {
-        _initializeAudioPlayer();
-      }
-    });
+    }
   }
 
   void removeListenHistory(Episode episode) {
@@ -68,13 +128,6 @@ class PlayerController extends GetxController {
     _saveFavoriteEpisodes();
   }
 
-  Future<void> setSpeed(double speed) async {
-    playbackSpeed.value = speed;
-    await _audioPlayer.setSpeed(speed);
-    // 保存播放速度
-    _savePlaybackSpeed(speed);
-  }
-
   Future<void> _savePlaybackSpeed(double speed) async {
     final prefs = await SharedPreferences.getInstance();
     await prefs.setDouble('playback_speed', speed);
@@ -83,75 +136,40 @@ class PlayerController extends GetxController {
   Future<void> loadPlaybackSpeed() async {
     final prefs = await SharedPreferences.getInstance();
     playbackSpeed.value = prefs.getDouble('playback_speed') ?? 1.0;
-    await _audioPlayer.setSpeed(playbackSpeed.value);
+    await _audioHandler.setSpeed(playbackSpeed.value);
   }
 
-  Future<void> _initializeAudioPlayer() async {
-    if (currentEpisode.value != null) {
-      try {
-        final episode = currentEpisode.value!;
-        await _audioPlayer.setUrl(episode.audioUrl!);
-
-        var position = playbackPositions[episode.audioUrl] ?? Duration.zero;
-        if (position.inSeconds >=
-            episode.durationInSeconds - const Duration(seconds: 5).inSeconds) {
-          position = Duration.zero; // 播放位置接近结束时重置为从头开始
-        }
-
-        _audioPlayer.seek(position);
-
-        if (isPlaying.value) {
-          _audioPlayer.play();
-        } else {
-          _audioPlayer.pause();
-        }
-      } catch (e) {
-        print('Error initializing audio player: $e');
-      }
-    }
-  }
-
-  void playEpisode(Episode episode) async {
+  void playEpisode(Episode episode, {bool autoPlay = true}) async {
     final currentEpisodeUrl = currentEpisode.value?.audioUrl;
     final isSameEpisode = currentEpisodeUrl == episode.audioUrl;
-
-    if (currentEpisodeUrl != null && !isSameEpisode) {
-      final currentPosition = _audioPlayer.position;
-      _savePlaybackPosition(currentEpisodeUrl, currentPosition);
-    }
 
     if (isSameEpisode) {
       var position = playbackPositions[episode.audioUrl] ?? Duration.zero;
       if (position.inSeconds >=
           episode.durationInSeconds - const Duration(seconds: 5).inSeconds) {
-        position = Duration.zero; // 播放位置接近结束时重置为从头开始
+        position = Duration.zero;
       }
 
-      _audioPlayer.seek(position);
+      await seek(position);
       if (!isPlaying.value) {
-        _audioPlayer.play();
+        await _audioHandler.play();
       }
       return;
     }
 
+    await _audioHandler.pause();
     currentEpisode.value = episode;
-    saveCurrentEpisode(); // Save the current episode
+    saveCurrentEpisode();
 
     try {
-      await _audioPlayer.setUrl(episode.audioUrl!);
-
       var position = playbackPositions[episode.audioUrl] ?? Duration.zero;
       if (position.inSeconds >=
           episode.durationInSeconds - const Duration(seconds: 5).inSeconds) {
-        position = Duration.zero; // 播放位置接近结束时重置为从头开始
+        position = Duration.zero;
       }
 
-      _audioPlayer.seek(position);
-      _audioPlayer.play();
-      isPlaying.value = true;
-
       addEpisodeToPlaylist(episode);
-      addEpisodeToListenHistory(episode); // 新增：将播放的集添加到收听记录
+      addEpisodeToListenHistory(episode);
 
       if (_recentlyUsedUrls.contains(episode.audioUrl!)) {
         _recentlyUsedUrls.remove(episode.audioUrl!);
@@ -159,19 +177,30 @@ class PlayerController extends GetxController {
       _recentlyUsedUrls.add(episode.audioUrl!);
 
       _savePlaybackPositions();
+
+      await _audioHandler.playMediaItem(mediaItemFromEpisode(episode));
+      await seek(position);
+
+      if (autoPlay) {
+        await _audioHandler.play();
+      }
     } catch (e) {
       print('Error playing episode: $e');
     }
   }
 
   void addEpisodeToPlaylist(Episode episode) {
-    // 检查播放列表中是否已存在此集
-    final existingIndex =
-        playlist.indexWhere((e) => e.audioUrl == episode.audioUrl);
+    if (playlist.isEmpty) {
+      playEpisode(episode);
+    } else {
+      // 检查播放列表中是否已存在此集
+      final existingIndex =
+          playlist.indexWhere((e) => e.audioUrl == episode.audioUrl);
 
-    // 如果集已经存在，则不需要进行任何操作
-    if (existingIndex != -1) {
-      return;
+      // 如果集已经存在，则不需要进行任何操作
+      if (existingIndex != -1) {
+        return;
+      }
     }
 
     // 如果播放列表已满，则移除最早添加的集（但优先保留正在播放的集）
@@ -200,6 +229,7 @@ class PlayerController extends GetxController {
     }
     // 将新集添加到播放列表的末尾
     playlist.add(episode);
+    // _audioHandler.addQueueItem(mediaItemFromEpisode(episode));
     // 保存播放列表
     savePlaylist();
   }
@@ -267,7 +297,6 @@ class PlayerController extends GetxController {
     try {
       final prefs = await SharedPreferences.getInstance();
       final jsonString = prefs.getString('current_episode');
-
       if (jsonString != null) {
         final Map<String, dynamic> jsonMap = json.decode(jsonString);
         currentEpisode.value = Episode.fromMap(jsonMap);
@@ -330,13 +359,15 @@ class PlayerController extends GetxController {
     savePlaylist();
     currentEpisode.value = null;
     saveCurrentEpisode();
-    _audioPlayer.stop();
+    _audioHandler.stop();
     isPlaying.value = false;
   }
 
   void removeEpisodeFromPlaylist(Episode episode) {
     // 播放下一个集
-    next();
+    if (episode.audioUrl == currentEpisode.value?.audioUrl) {
+      next();
+    }
     // 移除播放列表中的集
     _handleEpisodeRemoval(episode);
   }
@@ -361,7 +392,7 @@ class PlayerController extends GetxController {
     if (prevEpisode.audioUrl == currentEpisode.value?.audioUrl) {
       return;
     } else {
-      playEpisode(prevEpisode);
+      playEpisode(prevEpisode, autoPlay: isPlaying.value);
     }
   }
 
@@ -378,30 +409,61 @@ class PlayerController extends GetxController {
     if (nextEpisode.audioUrl == currentEpisode.value?.audioUrl) {
       return;
     } else {
-      playEpisode(nextEpisode);
+      playEpisode(nextEpisode, autoPlay: isPlaying.value);
     }
   }
 
   void _handlePlaybackCompletion() {
     // 播放下一个集，并在播放完成后移除当前播放的集
     if (currentEpisode.value != null) {
+      print("object ${currentEpisode.value!.title} 播放完成");
       removeEpisodeFromPlaylist(currentEpisode.value!);
     }
   }
 
-  void play() => _audioPlayer.play();
-  void pause() => _audioPlayer.pause();
-  void stop() => _audioPlayer.stop();
-  void seek(Duration position) => _audioPlayer.seek(position);
-
-  bool isEpisodePlaying(Episode episode) {
-    return currentEpisode.value?.audioUrl == episode.audioUrl &&
-        isPlaying.value;
+  void play() {
+    playEpisode(currentEpisode.value!);
   }
 
-  @override
-  void onClose() {
-    _audioPlayer.dispose();
-    super.onClose();
+  void pause() => _audioHandler.pause();
+  void stop() => _audioHandler.stop();
+  Future<void> seek(Duration position) async {
+    print("seeeeeee $position");
+    if (position < Duration.zero ||
+        position.inSeconds > currentEpisode.value!.durationInSeconds) {
+      print('Seek position is out of bounds');
+      return;
+    }
+
+    try {
+      await _audioHandler.seek(position);
+    } catch (e) {
+      print('Error during seek: $e');
+    }
   }
+
+  Future<void> setSpeed(double speed) async {
+    playbackSpeed.value = speed;
+    await _audioHandler.setSpeed(speed);
+    _savePlaybackSpeed(speed);
+  }
+
+  bool isCurrentEpisode(Episode episode) {
+    return currentEpisode.value?.audioUrl == episode.audioUrl;
+  }
+}
+
+MediaItem mediaItemFromEpisode(Episode episode) {
+  return MediaItem(
+    id: episode.audioUrl ?? '',
+    album: episode.subscription.title,
+    title: episode.title,
+    artist: episode.subscription.author,
+    duration: Duration(seconds: episode.durationInSeconds),
+    artUri: Uri.parse(episode.imageUrl ?? ''),
+    extras: {
+      'description': episode.description,
+      'pubDate': episode.pubDate.toIso8601String(),
+    },
+  );
 }

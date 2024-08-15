@@ -18,6 +18,8 @@ class MainPage extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final playerController = Get.find<PlayerController>();
+
     return GetBuilder<MainController>(builder: (mainController) {
       return Scaffold(
         body: Stack(
@@ -26,10 +28,18 @@ class MainPage extends StatelessWidget {
               index: mainController.selectedIndex,
               children: pages,
             ),
+            Obx(() {
+              final hasCurrentEpisode =
+                  playerController.currentEpisode.value != null;
+              return Padding(
+                padding: EdgeInsets.only(bottom: hasCurrentEpisode ? 80 : 0),
+                child: pages[mainController.selectedIndex],
+              );
+            }),
             // Positioned widget to place PlayerBar at the bottom
             Obx(() {
               final hasCurrentEpisode =
-                  Get.find<PlayerController>().currentEpisode.value != null;
+                  playerController.currentEpisode.value != null;
               return hasCurrentEpisode
                   ? Align(
                       alignment: Alignment.bottomCenter,

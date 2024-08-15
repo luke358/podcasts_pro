@@ -1,9 +1,9 @@
-import 'package:audio_service/audio_service.dart';
 import 'package:podcasts_pro/models/subscription.dart';
+import 'package:html/parser.dart' as html_parser; // 添加 HTML 解析库
 
 class Episode {
   final String title;
-  final String description;
+  final String descriptionHTML;
   final DateTime pubDate;
   final String? audioUrl;
   final int durationInSeconds;
@@ -11,7 +11,7 @@ class Episode {
   final Subscription subscription;
   Episode({
     required this.title,
-    required this.description,
+    required this.descriptionHTML,
     required this.pubDate,
     this.audioUrl,
     required this.durationInSeconds,
@@ -23,11 +23,11 @@ class Episode {
   Map<String, dynamic> toMap() {
     return {
       'title': title,
-      'description': description,
       'pubDate': pubDate.toIso8601String(),
       'audioUrl': audioUrl,
       'durationInSeconds': durationInSeconds,
       'imageUrl': imageUrl,
+      'descriptionHTML': descriptionHTML,
       'subscription': subscription.toMap(),
     };
   }
@@ -36,13 +36,16 @@ class Episode {
   factory Episode.fromMap(Map<String, dynamic> map) {
     return Episode(
       title: map['title'],
-      description: map['description'],
+      descriptionHTML: map['descriptionHTML'],
       pubDate: DateTime.parse(map['pubDate']),
       audioUrl: map['audioUrl'],
       durationInSeconds: map['durationInSeconds'],
       imageUrl: map['imageUrl'],
       subscription: Subscription.fromMap(map['subscription']),
     );
+  }
+  get description {
+    return parseHtml(descriptionHTML);
   }
 
   // 将 Episode 对象转换为 JSON 字符串
@@ -54,7 +57,7 @@ class Episode {
   factory Episode.fromJson(Map<String, dynamic> json) {
     return Episode(
       title: json['title'],
-      description: json['description'],
+      descriptionHTML: json['descriptionHTML'],
       pubDate: DateTime.parse(json['pubDate']), // 将 pubDate 解析为 DateTime
       audioUrl: json['audioUrl'],
       durationInSeconds: json['durationInSeconds'],
@@ -84,15 +87,9 @@ class Episode {
     final seconds = durationInSeconds % 60;
     return '${hours.toString().padLeft(2, '0')}:${minutes.toString().padLeft(2, '0')}:${seconds.toString().padLeft(2, '0')}';
   }
+}
 
-  MediaItem toMediaItem() {
-    return MediaItem(
-      id: audioUrl ?? '',
-      title: title,
-      album: subscription.title,
-      artist: subscription.author,
-      duration: Duration(seconds: durationInSeconds),
-      artUri: Uri.parse(imageUrl ?? ''),
-    );
-  }
+String parseHtml(String htmlString) {
+  final document = html_parser.parse(htmlString);
+  return document.body?.text ?? '';
 }

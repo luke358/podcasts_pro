@@ -32,6 +32,7 @@ class PodcastService {
     bool useCacheOnError = true,
   }) async {
     if (forceRefresh) {
+      print("强制刷新");
       // 强制刷新时从网络请求数据
       try {
         final episodes = await _fetchAndCacheEpisodes();
@@ -55,11 +56,14 @@ class PodcastService {
       // 尝试从缓存中获取数据
       final cachedData = await PodcastCacheManager.getCachedFile(rssUrl);
       if (cachedData != null) {
+        print("使用 cachedData");
+
         return _parseEpisodes(cachedData, rssUrl);
       }
 
       // 如果缓存不存在或过期，从网络获取数据
       try {
+        print("缓存不存在或过期，从网络获取数据");
         final episodes = await _fetchAndCacheEpisodes();
         return episodes;
       } catch (e) {
@@ -111,17 +115,15 @@ class PodcastService {
       final imageElement = item.findElements('itunes:image').single;
 
       final title = titleElement.text;
-      final descriptionHtml = descriptionElement.text;
-      final description = parseHtml(descriptionHtml);
+      final descriptionHTML = descriptionElement.text;
       final pubDate = pubDateElement.text;
       final audioUrl = audioUrlElement.getAttribute('url');
       final durationInSeconds = parseDurationToSeconds(durationElement.text);
       final imageUrl = imageElement.getAttribute('href');
-
       // 创建 Episode 对象时，附带 Subscription 信息
       episodes.add(Episode(
         title: title,
-        description: description,
+        descriptionHTML: descriptionHTML,
         pubDate: DateFormat('E, d MMM yyyy HH:mm:ss Z').parse(pubDate),
         audioUrl: audioUrl,
         durationInSeconds: durationInSeconds,
