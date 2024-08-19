@@ -36,8 +36,8 @@ class EpisodeListItem extends StatelessWidget {
   Widget build(BuildContext context) {
     return Obx(() {
       // final isCurrentEpisode = playerController.isCurrentEpisode(episode);
-      final playingState = playerController.playingState;
-      final isCurrentEpisode = playerController.isCurrentEpisode(episode);
+      bool isPlaying = playerController.isCurrentEpisode(episode) &&
+          playerController.playingState.value == PlayingState.playing;
 
       return ListTile(
         leading: episode.imageUrl != null
@@ -73,30 +73,17 @@ class EpisodeListItem extends StatelessWidget {
               children: [
                 TextButton.icon(
                   onPressed: () async {
-                    playerController.add(episode);
-                    // await audioHandler
-                    //     .addQueueItem(mediaItemFromEpisode(episode));
-                    // await audioHandler.play();
-                    // if (isCurrentEpisode && isPlaying) {
-                    //   // playerController.pause();
-                    // } else {
-                    //   // playerController.playEpisode(episode);
-                    // }
+                    if (isPlaying) {
+                      playerController.pause(); // Pause if currently playing
+                    } else {
+                      playerController
+                          .play(episode); // Play if currently paused
+                    }
                   },
-                  icon: isCurrentEpisode
-                      ? playingState == PlayingState.loading
-                          ? const SizedBox(
-                              width: 24,
-                              height: 24,
-                              child: CircularProgressIndicator(strokeWidth: 5),
-                            )
-                          : Icon(
-                              playingState == PlayingState.paused
-                                  ? Icons.play_arrow
-                                  : Icons.pause,
-                              size: 24,
-                            )
-                      : const Icon(Icons.play_arrow, size: 24),
+                  icon: Icon(
+                    isPlaying ? Icons.pause : Icons.play_arrow,
+                    color: isPlaying ? Colors.red : Colors.blue,
+                  ),
                   label: Text(
                     formatDuration(episode.durationInSeconds),
                   ),
@@ -108,7 +95,11 @@ class EpisodeListItem extends StatelessWidget {
                 const SizedBox(width: 8),
                 TextButton.icon(
                   onPressed: () {
-                    playerController.add(episode);
+                    if (playerController.playlist.isEmpty) {
+                      playerController.play(episode);
+                    } else {
+                      playerController.add(episode);
+                    }
                   },
                   icon: const Icon(Icons.playlist_add),
                   label: const Text("稍后听"),

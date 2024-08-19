@@ -3,6 +3,7 @@ import 'package:cached_network_image/cached_network_image.dart';
 import 'package:podcasts_pro/models/episode.dart';
 import 'package:intl/intl.dart';
 import 'package:get/get.dart';
+import 'package:podcasts_pro/pages/episode_detail.dart';
 import 'package:podcasts_pro/pages/main/player_controller.dart';
 
 class EpisodeListSubscription extends StatelessWidget {
@@ -35,8 +36,8 @@ class EpisodeListSubscription extends StatelessWidget {
   Widget build(BuildContext context) {
     return Obx(() {
       // final isCurrentEpisode = playerController.isCurrentEpisode(episode);
-      // final isPlaying = playerController.isPlaying.value;
-      // final isLoading = playerController.isLoading.value;
+      bool isPlaying = playerController.isCurrentEpisode(episode) &&
+          playerController.playingState.value == PlayingState.playing;
 
       return ListTile(
         leading: episode.imageUrl != null
@@ -71,14 +72,18 @@ class EpisodeListSubscription extends StatelessWidget {
             Row(
               children: [
                 TextButton.icon(
-                  onPressed: () {
-                    // if (isCurrentEpisode && isPlaying) {
-                    //   // playerController.pause();
-                    // } else {
-                    //   // playerController.playEpisode(episode);
-                    // }
+                  onPressed: () async {
+                    if (isPlaying) {
+                      playerController.pause(); // Pause if currently playing
+                    } else {
+                      playerController
+                          .play(episode); // Play if currently paused
+                    }
                   },
-                  icon: const Icon(Icons.play_arrow),
+                  icon: Icon(
+                    isPlaying ? Icons.pause : Icons.play_arrow,
+                    color: isPlaying ? Colors.red : Colors.blue,
+                  ),
                   label: Text(
                     formatDuration(episode.durationInSeconds),
                   ),
@@ -90,7 +95,11 @@ class EpisodeListSubscription extends StatelessWidget {
                 const SizedBox(width: 8),
                 TextButton.icon(
                   onPressed: () {
-                    // playerController.addEpisodeToPlaylist(episode);
+                    if (playerController.playlist.isEmpty) {
+                      playerController.play(episode);
+                    } else {
+                      playerController.add(episode);
+                    }
                   },
                   icon: const Icon(Icons.playlist_add),
                   label: const Text("稍后听"),
@@ -103,6 +112,14 @@ class EpisodeListSubscription extends StatelessWidget {
             ),
           ],
         ),
+        onTap: () {
+          Navigator.push(
+            context,
+            MaterialPageRoute(
+              builder: (context) => EpisodeDetailPage(episode: episode),
+            ),
+          );
+        },
       );
     });
   }

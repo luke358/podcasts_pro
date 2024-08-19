@@ -25,9 +25,8 @@ class PlaylistItem extends StatelessWidget {
       final duration = Duration(seconds: episode.durationInSeconds);
       final remaining = duration - playbackPosition;
 
-      // Determine if the current episode is playing
       bool isPlaying = playerController.isCurrentEpisode(episode) &&
-          playerController.playingState == PlayingState.playing;
+          playerController.playingState.value == PlayingState.playing;
 
       return Dismissible(
         key: ValueKey(episode.audioUrl),
@@ -82,7 +81,11 @@ class PlaylistItem extends StatelessWidget {
               if (isPlaying) {
                 playerController.pause(); // Pause if currently playing
               } else {
-                playerController.play(); // Play if currently paused
+                int index = playerController.playlist
+                    .indexWhere((e) => e.audioUrl == episode.audioUrl);
+                if (index != -1) {
+                  playerController.play(episode); // Play if currently paused
+                }
               }
             },
           ),

@@ -1,12 +1,13 @@
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
+import 'package:podcasts_pro/models/episode.dart';
 import 'package:podcasts_pro/pages/main/player_controller.dart';
 
 class PlayButton extends StatelessWidget {
   final PlayerController playerController = Get.find<PlayerController>();
   final double size;
-
-  PlayButton({super.key, this.size = 48}); // 设置默认大小为 48
+  final Episode episode;
+  PlayButton({super.key, this.size = 48, required this.episode}); // 设置默认大小为 48
 
   @override
   Widget build(BuildContext context) {
@@ -33,7 +34,7 @@ class PlayButton extends StatelessWidget {
           if (PlayingState.playing == playingState.value) {
             playerController.pause();
           } else {
-            playerController.play();
+            playerController.play(episode);
           }
         },
       );

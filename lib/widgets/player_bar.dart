@@ -85,6 +85,7 @@ class PlayerBar extends StatelessWidget {
                 Row(
                   children: [
                     PlayButton(
+                      episode: playerController.currentEpisode.value!,
                       size: 25,
                     ),
                     const SizedBox(width: 8.0),

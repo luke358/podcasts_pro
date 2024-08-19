@@ -35,12 +35,13 @@ class PlayerController extends GetxController {
     _audioHandler.setRepeatMode(AudioServiceRepeatMode.all);
 
     await _loadPlaylist();
-    currentEpisode.value = playlist.first;
+    if (playlist.isNotEmpty) {
+      currentEpisode.value = playlist.first;
+    }
+    _audioHandler.playFromPlaylist(autoPlay: false);
 
-    _listenToPlaybackState();
-    _listenToCurrentPosition();
-
-    playlist.listen((list) {
+    playlist.listen((newList) {
+      print('List changed: $newList');
       savePlaylist();
     });
     currentEpisode.listen((episode) {
@@ -48,32 +49,10 @@ class PlayerController extends GetxController {
     });
   }
 
-  void _listenToPlaybackState() {
-    _audioHandler.playbackState.listen((playbackState) {
-      final isPlaying = playbackState.playing;
-      final processingState = playbackState.processingState;
-      if (processingState == AudioProcessingState.loading ||
-          processingState == AudioProcessingState.buffering) {
-        playingState.value = PlayingState.loading;
-      } else if (!isPlaying) {
-        playingState.value = PlayingState.paused;
-      } else if (processingState != AudioProcessingState.completed) {
-        playingState.value = PlayingState.playing;
-      } else {
-        _audioHandler.seek(Duration.zero);
-        _audioHandler.pause();
-      }
-    });
-  }
-
-  void _listenToCurrentPosition() {
-    AudioService.position.listen((pos) {
-      currentPosition.value = pos;
-    });
-  }
-
   Future<void> add(Episode episode) async {
-    playlist.add(episode);
+    if (playlist.indexWhere((e) => e.audioUrl == episode.audioUrl) == -1) {
+      playlist.add(episode);
+    }
   }
 
   Future<void> next() async {
@@ -88,6 +67,10 @@ class PlayerController extends GetxController {
     final prefs = await SharedPreferences.getInstance();
     final jsonString = json.encode(playlist.map((e) => e.toMap()).toList());
     await prefs.setString('playlist', jsonString);
+  }
+
+  Future<void> clearPlaylist() async {
+    await _audioHandler.clearPlaylist();
   }
 
   Future<void> _loadPlaylist() async {
@@ -121,8 +104,16 @@ class PlayerController extends GetxController {
     _audioHandler.pause();
   }
 
-  void play() {
-    _audioHandler.playFromPlaylist();
+  void play(
+    Episode episode, {
+    bool autoPlay = true,
+  }) {
+    int index = playlist.indexWhere((e) => e.audioUrl == episode.audioUrl);
+    if (index == -1) {
+      playlist.add(episode);
+      index = playlist.length - 1;
+    }
+    _audioHandler.playFromPlaylist(index: index, autoPlay: autoPlay);
   }
 
   bool isCurrentEpisode(Episode episode) {

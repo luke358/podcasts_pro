@@ -3,6 +3,7 @@ import 'dart:async';
 import 'package:audio_service/audio_service.dart';
 import 'package:get/instance_manager.dart';
 import 'package:just_audio/just_audio.dart';
+import 'package:podcasts_pro/pages/main/playback_position_controller.dart';
 import 'package:podcasts_pro/pages/main/player_controller.dart';
 import 'package:podcasts_pro/utils/episode.dart';
 import 'package:rxdart/rxdart.dart';
@@ -22,10 +23,12 @@ Future<AudioHandler> initAudioService() async {
 class MyAudioHandler extends BaseAudioHandler {
   final _player = AudioPlayer();
   final PlayerController playerController = Get.find<PlayerController>();
+  final PlaybackPositionController _playerbackPositionController =
+      Get.find<PlaybackPositionController>();
   final _mediaItemSubject = BehaviorSubject<MediaItem?>();
   final _playbackStateSubject = BehaviorSubject<PlaybackState>();
 
-  int _currentIndex = 0;
+  int _currentIndex = -1;
 
   MyAudioHandler() {
     _init();
@@ -37,6 +40,14 @@ class MyAudioHandler extends BaseAudioHandler {
 
     // 监听播放器事件
     _player.playbackEventStream.listen(_broadcastState);
+
+    _player.positionStream.listen((position) {
+      playerController.currentPosition.value = position;
+      if (playerController.currentEpisode.value != null && !isSwitching) {
+        _playerbackPositionController.savePlaybackPosition(
+            playerController.currentEpisode.value!.audioUrl!, position);
+      }
+    });
 
     // 监听播放完成事件
     _player.processingStateStream.listen((state) {
@@ -84,14 +95,20 @@ class MyAudioHandler extends BaseAudioHandler {
   AudioProcessingState _getProcessingState() {
     switch (_player.processingState) {
       case ProcessingState.idle:
+        playerController.playingState.value = PlayingState.loading;
         return AudioProcessingState.idle;
       case ProcessingState.loading:
+        playerController.playingState.value = PlayingState.loading;
         return AudioProcessingState.loading;
       case ProcessingState.buffering:
+        playerController.playingState.value = PlayingState.loading;
         return AudioProcessingState.buffering;
       case ProcessingState.ready:
+        playerController.playingState.value =
+            _player.playing ? PlayingState.playing : PlayingState.paused;
         return AudioProcessingState.ready;
       case ProcessingState.completed:
+        playerController.playingState.value = PlayingState.playing;
         return AudioProcessingState.completed;
     }
   }
@@ -108,20 +125,23 @@ class MyAudioHandler extends BaseAudioHandler {
     }
   }
 
+  bool isSwitching = false;
   Future<void> handlePlaybackCompletion() async {
     print('Handling playback completion');
     if (playerController.playlist.isEmpty) {
-      await _player.stop();
-      _updateMediaItem(null);
-      _updatePlaybackState(stopped: true);
+      clearPlaylist();
+      // await _player.stop();
+      // _updateMediaItem(null);
+      // _updatePlaybackState(stopped: true);
       return;
     }
 
     playerController.playlist.removeAt(_currentIndex);
     if (playerController.playlist.isEmpty) {
-      await _player.stop();
-      _updateMediaItem(null);
-      _updatePlaybackState(stopped: true);
+      clearPlaylist();
+      // await _player.stop();
+      // _updateMediaItem(null);
+      // _updatePlaybackState(stopped: true);
     } else {
       if (_currentIndex >= playerController.playlist.length) {
         _currentIndex = 0;
@@ -133,29 +153,90 @@ class MyAudioHandler extends BaseAudioHandler {
     _notifyQueueChanges();
   }
 
-  Future<void> playFromPlaylist() async {
+  Future<void> playFromPlaylist({int? index, bool autoPlay = true}) async {
+    isSwitching = true;
+
+    print("_currentIndex: $_currentIndex");
+    if (index != null && index == _currentIndex) {
+      isSwitching = false;
+      play();
+      return;
+    }
     if (playerController.playlist.isEmpty) {
-      _updateMediaItem(null);
-      _updatePlaybackState(stopped: true);
+      clearPlaylist();
+      isSwitching = false;
+      print('Playlist is empty');
+      // _updateMediaItem(null);
+      // _updatePlaybackState(stopped: true);
       return;
     }
 
-    if (_currentIndex >= playerController.playlist.length) {
-      _currentIndex = 0;
+    // 如果没有提供 index，并且当前没有播放，则强制播放第一个项目
+    // if (index == null && !_player.playing) {
+    //   index = 0;
+    // }
+
+    if (index != null) {
+      _currentIndex = index;
     }
 
+    if (_currentIndex >= playerController.playlist.length ||
+        _currentIndex < 0) {
+      _currentIndex = 0;
+    }
+    print("_currentIndex2: $_currentIndex");
+
     final episode = playerController.playlist[_currentIndex];
+    playerController.currentEpisode.value = episode;
+
     _updateMediaItem(mediaItemFromEpisode(episode));
 
     try {
       await _player
           .setAudioSource(AudioSource.uri(Uri.parse(episode.audioUrl!)));
-      play();
-      playerController.currentEpisode.value = episode;
+      Duration? position =
+          _playerbackPositionController.playbackPositions[episode.audioUrl];
+      if (position != null &&
+          position.inSeconds > 10 &&
+          !(position.inSeconds >= episode.durationInSeconds - 5)) {
+        await seek(position);
+      }
+      if (autoPlay) {
+        play();
+      }
     } catch (e) {
       print('Error setting audio source: $e');
       _handlePlaybackError();
+    } finally {
+      isSwitching = false;
     }
+  }
+
+  Future<void> clearPlaylist() async {
+    print('Clearing playlist');
+
+    // 停止当前播放
+    await stop();
+
+    // 清空播放列表
+    playerController.playlist.clear();
+    playerController.savePlaylist();
+    playerController.currentEpisode.value = null;
+    // playerController.saveF
+
+    // 重置当前索引
+    _currentIndex = -1;
+
+    // 更新 mediaItem 为 null
+    _updateMediaItem(null);
+
+    // 更新播放状态
+    _updatePlaybackState(stopped: true);
+
+    // 通知队列变化
+    _notifyQueueChanges();
+
+    print('Playlist cleared');
   }
 
   void _handlePlaybackError() {

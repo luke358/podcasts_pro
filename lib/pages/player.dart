@@ -231,7 +231,7 @@ class _PlayerPageState extends State<PlayerPage>
                           },
                         ),
                         const SizedBox(width: 16),
-                        PlayButton(),
+                        PlayButton(episode: episode),
                         const SizedBox(width: 16),
                         IconButton(
                           icon: const Icon(Icons.skip_next),
