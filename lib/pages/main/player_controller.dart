@@ -117,7 +117,7 @@ class PlayerController extends GetxController {
   }
 
   bool isCurrentEpisode(Episode episode) {
-    return currentEpisode.value == episode;
+    return currentEpisode.value?.audioUrl == episode.audioUrl;
   }
 
   @override
