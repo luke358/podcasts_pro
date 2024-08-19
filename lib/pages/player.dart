@@ -227,7 +227,7 @@ class _PlayerPageState extends State<PlayerPage>
                         IconButton(
                           icon: const Icon(Icons.skip_previous),
                           onPressed: () {
-                            // playerController.prev();
+                            playerController.prev();
                           },
                         ),
                         const SizedBox(width: 16),
@@ -236,7 +236,7 @@ class _PlayerPageState extends State<PlayerPage>
                         IconButton(
                           icon: const Icon(Icons.skip_next),
                           onPressed: () {
-                            // playerController.next();
+                            playerController.next();
                           },
                         ),
                         const SizedBox(width: 16),

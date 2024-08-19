@@ -75,6 +75,8 @@ class _FeedPageState extends State<FeedPage>
       } else {
         setState(() {
           _episodes = fetchedEpisodes.expand((e) => e).toList();
+          // _playerController.playlist.value = _episodes;
+          // _playerController.savePlaylist();
         });
       }
     } catch (e) {

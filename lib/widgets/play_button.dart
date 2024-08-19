@@ -30,7 +30,7 @@ class PlayButton extends StatelessWidget {
                 size: size,
               ),
         onPressed: () {
-          if (playingState == PlayingState.playing) {
+          if (PlayingState.playing == playingState.value) {
             playerController.pause();
           } else {
             playerController.play();

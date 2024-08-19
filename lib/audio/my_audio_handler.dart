@@ -1,5 +1,11 @@
+import 'dart:async';
+
 import 'package:audio_service/audio_service.dart';
+import 'package:get/instance_manager.dart';
 import 'package:just_audio/just_audio.dart';
+import 'package:podcasts_pro/pages/main/player_controller.dart';
+import 'package:podcasts_pro/utils/episode.dart';
+import 'package:rxdart/rxdart.dart';
 
 Future<AudioHandler> initAudioService() async {
   return await AudioService.init(
@@ -13,220 +19,223 @@ Future<AudioHandler> initAudioService() async {
   );
 }
 
-class MyAudioHandler extends BaseAudioHandler with QueueHandler {
+class MyAudioHandler extends BaseAudioHandler {
   final _player = AudioPlayer();
-  final _playlist = ConcatenatingAudioSource(children: []);
-  bool suppressStreamUpdates = true;
+  final PlayerController playerController = Get.find<PlayerController>();
+  final _mediaItemSubject = BehaviorSubject<MediaItem?>();
+  final _playbackStateSubject = BehaviorSubject<PlaybackState>();
+
+  int _currentIndex = 0;
 
   MyAudioHandler() {
-    _loadEmptyPlaylist();
-    _notifyAudioHandlerAboutPlaybackEvents();
-    _listenForDurationChanges();
-    _listenForCurrentSongIndexChanges();
-    _listenForSequenceStateChanges();
+    _init();
+  }
 
-    _player.positionDiscontinuityStream.listen((discontinuity) async {
-      if (discontinuity.reason == PositionDiscontinuityReason.autoAdvance) {
-        // INSERT CODE TO REFLECT NEW SONG
-        // await _player.pause();
-        // print("autoAdvance");
-        if (_player.playing) {
-          await _player.pause();
-        }
+  Future<void> _init() async {
+    // 初始化播放器状态
+    _updatePlaybackState(stopped: true);
+
+    // 监听播放器事件
+    _player.playbackEventStream.listen(_broadcastState);
+
+    // 监听播放完成事件
+    _player.processingStateStream.listen((state) {
+      if (state == ProcessingState.completed) {
+        handlePlaybackCompletion();
       }
     });
+
+    // 同步 mediaItem 和 playbackState
+    _mediaItemSubject.stream.listen((item) => mediaItem.add(item));
+    _playbackStateSubject.stream.listen((state) => playbackState.add(state));
   }
 
-  Future<void> _loadEmptyPlaylist() async {
-    try {
-      await _player.setAudioSource(_playlist);
-    } catch (e) {
-      print("Error: $e");
-    }
+  void _updateMediaItem(MediaItem? item) {
+    print('Updating MediaItem: ${item?.title}');
+    _mediaItemSubject.add(item);
   }
 
-  void _notifyAudioHandlerAboutPlaybackEvents() {
-    _player.playbackEventStream.listen((PlaybackEvent event) {
-      final playing = _player.playing;
-
-      playbackState.add(playbackState.value.copyWith(
-        controls: [
-          MediaControl.skipToPrevious,
-          if (playing) MediaControl.pause else MediaControl.play,
-          MediaControl.stop,
-          MediaControl.skipToNext,
-        ],
-        systemActions: const {
-          MediaAction.seek,
-        },
-        androidCompactActionIndices: const [0, 1, 3],
-        processingState: const {
-          ProcessingState.idle: AudioProcessingState.idle,
-          ProcessingState.loading: AudioProcessingState.loading,
-          ProcessingState.buffering: AudioProcessingState.buffering,
-          ProcessingState.ready: AudioProcessingState.ready,
-          ProcessingState.completed: AudioProcessingState.completed,
-        }[_player.processingState]!,
-        playing: playing,
-        updatePosition: _player.position,
-        bufferedPosition: _player.bufferedPosition,
-        speed: _player.speed,
-        queueIndex: event.currentIndex,
-        repeatMode: const {
-          LoopMode.off: AudioServiceRepeatMode.none,
-          LoopMode.one: AudioServiceRepeatMode.one,
-          LoopMode.all: AudioServiceRepeatMode.all,
-        }[_player.loopMode]!,
-        shuffleMode: (_player.shuffleModeEnabled)
-            ? AudioServiceShuffleMode.all
-            : AudioServiceShuffleMode.none,
-      ));
-    });
-  }
-
-  void _listenForDurationChanges() {
-    _player.durationStream.listen((duration) {
-      if (suppressStreamUpdates) return;
-      var index = _player.currentIndex;
-      final newQueue = queue.value;
-      if (index == null || newQueue.isEmpty) return;
-      if (_player.shuffleModeEnabled) {
-        index = _player.shuffleIndices!.indexOf(index);
-      }
-      final oldMediaItem = newQueue[index];
-      final newMediaItem = oldMediaItem.copyWith(duration: duration);
-      newQueue[index] = newMediaItem;
-      queue.add(newQueue);
-      mediaItem.add(newMediaItem);
-    });
-  }
-
-  void _listenForCurrentSongIndexChanges() {
-    _player.currentIndexStream.listen((index) {
-      print("ccccc $index");
-      if (suppressStreamUpdates) return;
-      final playlist = queue.value;
-      if (index == null || playlist.isEmpty) return;
-      if (_player.shuffleModeEnabled) {
-        index = _player.shuffleIndices!.indexOf(index);
-      }
-      mediaItem.add(playlist[index]);
-    });
-  }
-
-  void _listenForSequenceStateChanges() {
-    _player.sequenceStateStream.listen((SequenceState? sequenceState) {
-      final sequence = sequenceState?.effectiveSequence;
-      if (sequence == null || sequence.isEmpty) return;
-      final items = sequence.map((source) => source.tag as MediaItem);
-      queue.add(items.toList());
-    });
-  }
-
-  @override
-  Future<void> addQueueItem(MediaItem mediaItem) async {
-    // manage Just Audio
-    final audioSource = _createAudioSource(mediaItem);
-    _playlist.add(audioSource);
-
-    // notify system
-    final newQueue = queue.value..add(mediaItem);
-    queue.add(newQueue);
-  }
-
-  @override
-  Future<void> addQueueItems(List<MediaItem> mediaItems) async {
-    // manage Just Audio
-    final audioSource = mediaItems.map(_createAudioSource);
-    _playlist.addAll(audioSource.toList());
-
-    // notify system
-    final newQueue = queue.value..addAll(mediaItems);
-    queue.add(newQueue);
-  }
-
-  @override
-  Future<void> removeQueueItemAt(int index) async {
-    // manage Just Audio
-    _playlist.removeAt(index);
-    // notify system
-    final newQueue = queue.value..removeAt(index);
-    queue.add(newQueue);
-  }
-
-  @override
-  Future<void> skipToQueueItem(int index) async {
-    if (index < 0 || index >= queue.value.length) return;
-    if (_player.shuffleModeEnabled) {
-      index = _player.shuffleIndices!.indexOf(index);
-    }
-    _player.seek(Duration.zero, index: index);
-  }
-
-  UriAudioSource _createAudioSource(MediaItem mediaItem) {
-    return AudioSource.uri(
-      Uri.parse(mediaItem.id),
-      tag: mediaItem,
+  void _updatePlaybackState({bool stopped = false}) {
+    final state = PlaybackState(
+      controls: [
+        MediaControl.skipToPrevious,
+        if (_player.playing) MediaControl.pause else MediaControl.play,
+        MediaControl.stop,
+        MediaControl.skipToNext,
+      ],
+      systemActions: const {
+        MediaAction.seek,
+        MediaAction.seekForward,
+        MediaAction.seekBackward,
+      },
+      androidCompactActionIndices: const [0, 1, 3],
+      processingState:
+          stopped ? AudioProcessingState.idle : _getProcessingState(),
+      playing: _player.playing,
+      updatePosition: _player.position,
+      bufferedPosition: _player.bufferedPosition,
+      speed: _player.speed,
     );
+    print(
+        'Updating PlaybackState: ${state.processingState}, Playing: ${state.playing}');
+    _playbackStateSubject.add(state);
   }
 
-  @override
-  Future<void> play() => _player.play();
-
-  @override
-  Future<void> pause() => _player.pause();
-
-  @override
-  Future<void> seek(Duration position) => _player.seek(position);
-
-  @override
-  Future<void> skipToNext() async {
-    _player.seekToNext();
+  AudioProcessingState _getProcessingState() {
+    switch (_player.processingState) {
+      case ProcessingState.idle:
+        return AudioProcessingState.idle;
+      case ProcessingState.loading:
+        return AudioProcessingState.loading;
+      case ProcessingState.buffering:
+        return AudioProcessingState.buffering;
+      case ProcessingState.ready:
+        return AudioProcessingState.ready;
+      case ProcessingState.completed:
+        return AudioProcessingState.completed;
+    }
   }
 
-  @override
-  Future<void> skipToPrevious() => _player.seekToPrevious();
-
-  @override
-  Future<void> setShuffleMode(AudioServiceShuffleMode shuffleMode) async {
-    if (shuffleMode == AudioServiceShuffleMode.none) {
-      _player.setShuffleModeEnabled(false);
+  Future<void> _broadcastState(PlaybackEvent event) async {
+    print('Broadcasting state: ${event.processingState}');
+    _updatePlaybackState();
+    if (playerController.playlist.isNotEmpty &&
+        _currentIndex < playerController.playlist.length) {
+      _updateMediaItem(
+          mediaItemFromEpisode(playerController.playlist[_currentIndex]));
     } else {
-      await _player.shuffle();
-      _player.setShuffleModeEnabled(true);
+      _updateMediaItem(null);
     }
   }
 
-  @override
-  Future<void> setRepeatMode(AudioServiceRepeatMode repeatMode) async {
-    switch (repeatMode) {
-      case AudioServiceRepeatMode.none:
-        _player.setLoopMode(LoopMode.off);
-        break;
-      case AudioServiceRepeatMode.one:
-        _player.setLoopMode(LoopMode.one);
-        break;
-      case AudioServiceRepeatMode.group:
-      case AudioServiceRepeatMode.all:
-        _player.setLoopMode(LoopMode.all);
-        break;
+  Future<void> handlePlaybackCompletion() async {
+    print('Handling playback completion');
+    if (playerController.playlist.isEmpty) {
+      await _player.stop();
+      _updateMediaItem(null);
+      _updatePlaybackState(stopped: true);
+      return;
     }
+
+    playerController.playlist.removeAt(_currentIndex);
+    if (playerController.playlist.isEmpty) {
+      await _player.stop();
+      _updateMediaItem(null);
+      _updatePlaybackState(stopped: true);
+    } else {
+      if (_currentIndex >= playerController.playlist.length) {
+        _currentIndex = 0;
+      }
+      _updateMediaItem(
+          mediaItemFromEpisode(playerController.playlist[_currentIndex]));
+      await playFromPlaylist();
+    }
+    _notifyQueueChanges();
+  }
+
+  Future<void> playFromPlaylist() async {
+    if (playerController.playlist.isEmpty) {
+      _updateMediaItem(null);
+      _updatePlaybackState(stopped: true);
+      return;
+    }
+
+    if (_currentIndex >= playerController.playlist.length) {
+      _currentIndex = 0;
+    }
+
+    final episode = playerController.playlist[_currentIndex];
+    _updateMediaItem(mediaItemFromEpisode(episode));
+
+    try {
+      await _player
+          .setAudioSource(AudioSource.uri(Uri.parse(episode.audioUrl!)));
+      play();
+      playerController.currentEpisode.value = episode;
+    } catch (e) {
+      print('Error setting audio source: $e');
+      _handlePlaybackError();
+    }
+  }
+
+  void _handlePlaybackError() {
+    // 处理播放错误，例如跳到下一曲或停止播放
+    skipToNext();
+  }
+
+  @override
+  Future<void> play() async {
+    print('Playing');
+    await _player.play();
+    _updatePlaybackState();
+  }
+
+  @override
+  Future<void> pause() async {
+    print('Pausing');
+    await _player.pause();
+    _updatePlaybackState();
   }
 
   @override
   Future<void> stop() async {
+    print('Stopping');
     await _player.stop();
-    return super.stop();
+    _updatePlaybackState(stopped: true);
   }
 
   @override
-  Future<void> customAction(
-    String name, [
-    Map<String, dynamic>? extras,
-  ]) async {
-    if (name == 'dispose') {
-      await _player.dispose();
-      super.stop();
+  Future<void> skipToNext() async {
+    print('Skipping to next');
+    if (playerController.playlist.isEmpty) return;
+
+    _currentIndex = (_currentIndex + 1) % playerController.playlist.length;
+    _updateMediaItem(
+        mediaItemFromEpisode(playerController.playlist[_currentIndex]));
+    await playFromPlaylist();
+  }
+
+  @override
+  Future<void> seek(Duration position) async {
+    await _player.seek(position);
+  }
+
+  @override
+  Future<void> skipToPrevious() async {
+    print('Skipping to previous');
+    if (playerController.playlist.isEmpty) return;
+
+    if (_currentIndex - 1 < 0) {
+      _currentIndex = playerController.playlist.length - 1;
+    } else {
+      _currentIndex--;
     }
+    _updateMediaItem(
+        mediaItemFromEpisode(playerController.playlist[_currentIndex]));
+    await playFromPlaylist();
+  }
+
+  void remove(int index) async {
+    // 删除前面的
+    if (index < _currentIndex) {
+      _currentIndex--;
+    }
+    playerController.playlist.removeAt(index);
+  }
+
+  void _notifyQueueChanges() {
+    queue.add(playerController.playlist
+        .map((episode) => mediaItemFromEpisode(episode))
+        .toList());
+  }
+
+  @override
+  Future<void> onTaskRemoved() async {
+    await stop();
+  }
+
+  @override
+  Future<void> onNotificationDeleted() async {
+    await stop();
   }
 }

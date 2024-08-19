@@ -5,7 +5,6 @@ import 'package:get/get_rx/src/rx_types/rx_types.dart';
 import 'package:get/get_state_manager/src/simple/get_controllers.dart';
 import 'package:podcasts_pro/audio/my_audio_handler.dart';
 import 'package:podcasts_pro/models/episode.dart';
-import 'package:podcasts_pro/models/subscription.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 // ignore: constant_identifier_names
@@ -33,24 +32,20 @@ class PlayerController extends GetxController {
   void onInit() async {
     super.onInit();
     _audioHandler = await initAudioService() as MyAudioHandler;
-    _audioHandler.setRepeatMode(AudioServiceRepeatMode.none);
+    _audioHandler.setRepeatMode(AudioServiceRepeatMode.all);
 
     await _loadPlaylist();
-    await _loadPlaylistToAudioHandler();
-    _listenToChangesInPlaylist();
+    currentEpisode.value = playlist.first;
+
     _listenToPlaybackState();
     _listenToCurrentPosition();
-    _listenToMediaItem();
-  }
 
-  Future<void> _loadPlaylistToAudioHandler() async {
-    final mediaItems =
-        playlist.map((episode) => mediaItemFromEpisode(episode)).toList();
-
-    // print("object ${mediaItems[0]}");
-    await _audioHandler.addQueueItems(mediaItems);
-    _audioHandler.suppressStreamUpdates = false;
-    await _audioHandler.skipToQueueItem(1);
+    playlist.listen((list) {
+      savePlaylist();
+    });
+    currentEpisode.listen((episode) {
+      // saveCurrentEpisode
+    });
   }
 
   void _listenToPlaybackState() {
@@ -77,38 +72,16 @@ class PlayerController extends GetxController {
     });
   }
 
-  void _listenToMediaItem() {
-    _audioHandler.mediaItem.listen((mediaItem) {
-      currentEpisode.value =
-          mediaItem != null ? episodeFromMediaItem(mediaItem) : null;
-      print("cccc");
-      print(currentEpisode.value);
-    });
-  }
-
   Future<void> add(Episode episode) async {
-    _audioHandler.addQueueItem(mediaItemFromEpisode(episode));
+    playlist.add(episode);
   }
 
-  void remove(Episode episode) {
-    final lastIndex = _audioHandler.queue.value.length - 1;
-    if (lastIndex < 0) return;
-    _audioHandler.removeQueueItemAt(lastIndex);
+  Future<void> next() async {
+    await _audioHandler.skipToNext();
   }
 
-  void _listenToChangesInPlaylist() {
-    _audioHandler.queue.listen((list) {
-      if (list.isEmpty) {
-        playlist.value = [];
-        currentEpisode.value = null;
-      } else {
-        final newList =
-            list.map((mediaItem) => episodeFromMediaItem(mediaItem)).toList();
-        playlist.value = newList;
-      }
-      print("object ${playlist.length}");
-      savePlaylist();
-    });
+  Future<void> prev() async {
+    await _audioHandler.skipToPrevious();
   }
 
   Future<void> savePlaylist() async {
@@ -128,50 +101,32 @@ class PlayerController extends GetxController {
     }
   }
 
-  Future<void> saveCurrentEpisode() async {
-    final prefs = await SharedPreferences.getInstance();
-    final jsonString = json.encode(currentEpisode.value?.toMap());
-    await prefs.setString('current_episode', jsonString);
-  }
-
-  Future<void> loadCurrentEpisode() async {
-    try {
-      final prefs = await SharedPreferences.getInstance();
-      final jsonString = prefs.getString('current_episode');
-      if (jsonString != null) {
-        final Map<String, dynamic> jsonMap = json.decode(jsonString);
-        currentEpisode.value = Episode.fromMap(jsonMap);
-      } else {
-        currentEpisode.value = null;
-      }
-    } catch (e) {
-      print('Failed to load current episode: $e');
-      currentEpisode.value = null;
-    }
-  }
-
-  void shuffle() {
-    final enable = !isShuffleMode.value;
-    isShuffleMode.value = enable;
-    if (enable) {
-      _audioHandler.setShuffleMode(AudioServiceShuffleMode.all);
+  void remove(Episode episode) {
+    if (currentEpisode.value?.audioUrl == episode.audioUrl) {
+      _audioHandler.handlePlaybackCompletion();
     } else {
-      _audioHandler.setShuffleMode(AudioServiceShuffleMode.none);
+      int index = playlist.indexWhere((e) => e.audioUrl == episode.audioUrl);
+      if (index != -1) {
+        _audioHandler.remove(index);
+      }
     }
   }
 
-  void play() => _audioHandler.play();
-  void pause() => _audioHandler.pause();
-  void seek(Duration position) {
-    print("seek $position");
-    _audioHandler.seek(position);
+  Future<void> seek(Duration position) async {
+    print("object $position");
+    await _audioHandler.seek(position);
   }
 
-  void previous() => _audioHandler.skipToPrevious();
-  void next() => _audioHandler.skipToNext();
+  void pause() {
+    _audioHandler.pause();
+  }
+
+  void play() {
+    _audioHandler.playFromPlaylist();
+  }
 
   bool isCurrentEpisode(Episode episode) {
-    return currentEpisode.value?.audioUrl == episode.audioUrl;
+    return currentEpisode.value == episode;
   }
 
   @override
@@ -185,30 +140,25 @@ class PlayerController extends GetxController {
   }
 }
 
-MediaItem mediaItemFromEpisode(Episode episode) {
-  return MediaItem(
-    id: episode.audioUrl ?? '',
-    album: episode.subscription.title,
-    title: episode.title,
-    artist: episode.subscription.author,
-    duration: Duration(seconds: episode.durationInSeconds),
-    artUri: Uri.parse(episode.imageUrl ?? ''),
-    extras: {
-      'descriptionHTML': episode.descriptionHTML,
-      'pubDate': episode.pubDate.toIso8601String(),
-      'subscription': episode.subscription.toJson(),
-    },
-  );
-}
 
-Episode episodeFromMediaItem(MediaItem mediaItem) {
-  return Episode(
-    title: mediaItem.title,
-    descriptionHTML: mediaItem.extras?['descriptionHTML'] ?? '',
-    pubDate: DateTime.parse(mediaItem.extras?['pubDate'] ?? ''),
-    audioUrl: mediaItem.id,
-    durationInSeconds: mediaItem.duration?.inSeconds ?? 0,
-    imageUrl: mediaItem.artUri.toString(),
-    subscription: Subscription.fromJson(mediaItem.extras?['subscription']),
-  );
-}
+  // Future<void> saveCurrentEpisode() async {
+  //   final prefs = await SharedPreferences.getInstance();
+  //   final jsonString = json.encode(currentEpisode.value?.toMap());
+  //   await prefs.setString('current_episode', jsonString);
+  // }
+
+  // Future<void> loadCurrentEpisode() async {
+  //   try {
+  //     final prefs = await SharedPreferences.getInstance();
+  //     final jsonString = prefs.getString('current_episode');
+  //     if (jsonString != null) {
+  //       final Map<String, dynamic> jsonMap = json.decode(jsonString);
+  //       currentEpisode.value = Episode.fromMap(jsonMap);
+  //     } else {
+  //       currentEpisode.value = null;
+  //     }
+  //   } catch (e) {
+  //     print('Failed to load current episode: $e');
+  //     currentEpisode.value = null;
+  //   }
+  // }
