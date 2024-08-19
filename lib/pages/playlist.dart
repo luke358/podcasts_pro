@@ -18,7 +18,7 @@ class PlaylistPage extends StatelessWidget {
           IconButton(
             icon: const Icon(Icons.delete_sweep),
             onPressed: () {
-              playerController.clearPlaylist(); // Clear playlist logic
+              // playerController.clearPlaylist(); // Clear playlist logic
             },
           ),
         ],
@@ -33,7 +33,7 @@ class PlaylistPage extends StatelessWidget {
               episode: episode,
               onDelete: () {
                 playerController
-                    .removeEpisodeFromPlaylist(episode); // Remove item logic
+                    .remove(episode); // Remove item logic
               },
             );
           },

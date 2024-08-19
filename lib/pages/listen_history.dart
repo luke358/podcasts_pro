@@ -1,10 +1,13 @@
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
+import 'package:podcasts_pro/pages/main/listen_history_controller.dart';
 import 'package:podcasts_pro/pages/main/player_controller.dart';
 import 'package:podcasts_pro/widgets/episode_list.dart';
 
 class ListenHistoryPage extends StatelessWidget {
-  final PlayerController playerController = Get.find<PlayerController>();
+  final ListenHistoryController _listenHistoryController =
+      Get.find<ListenHistoryController>();
+  final PlayerController _playerController = Get.find<PlayerController>();
 
   ListenHistoryPage({super.key});
 
@@ -15,7 +18,7 @@ class ListenHistoryPage extends StatelessWidget {
         title: const Text('收听记录'),
       ),
       body: Obx(() {
-        final history = playerController.listenHistory;
+        final history = _listenHistoryController.listenHistory;
 
         if (history.isEmpty) {
           return const Center(child: Text('没有收听记录'));
@@ -23,9 +26,9 @@ class ListenHistoryPage extends StatelessWidget {
 
         return EpisodeList(
           episodes: history,
-          playerController: playerController,
+          playerController: _playerController,
           enableSlidable: true,
-          onDelete: (p0) => playerController.removeListenHistory(p0),
+          onDelete: (p0) => _listenHistoryController.removeListenHistory(p0),
         );
       }),
     );

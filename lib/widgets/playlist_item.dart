@@ -3,6 +3,7 @@ import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:podcasts_pro/models/episode.dart';
+import 'package:podcasts_pro/pages/main/playback_position_controller.dart';
 import 'package:podcasts_pro/pages/main/player_controller.dart';
 
 class PlaylistItem extends StatelessWidget {
@@ -15,17 +16,18 @@ class PlaylistItem extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final playerController = Get.find<PlayerController>();
+    final playbackPositionController = Get.find<PlaybackPositionController>();
 
     return Obx(() {
       final playbackPosition =
-          playerController.playbackPositions[episode.audioUrl] ?? Duration.zero;
+          playbackPositionController.getPlaybackPosition(episode.audioUrl) ??
+              Duration.zero;
       final duration = Duration(seconds: episode.durationInSeconds);
       final remaining = duration - playbackPosition;
 
       // Determine if the current episode is playing
-      bool isPlaying =
-          playerController.currentEpisode.value?.audioUrl == episode.audioUrl &&
-              playerController.isPlaying.value;
+      bool isPlaying = playerController.isCurrentEpisode(episode) &&
+          playerController.playingState == PlayingState.playing;
 
       return Dismissible(
         key: ValueKey(episode.audioUrl),

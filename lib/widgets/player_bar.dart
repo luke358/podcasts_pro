@@ -1,6 +1,7 @@
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
+import 'package:podcasts_pro/pages/main/playback_position_controller.dart';
 import 'package:podcasts_pro/pages/main/player_controller.dart';
 import 'package:podcasts_pro/pages/player.dart';
 import 'package:podcasts_pro/pages/playlist.dart';
@@ -10,6 +11,8 @@ import 'package:podcasts_pro/widgets/playlist_item.dart';
 class PlayerBar extends StatelessWidget {
   PlayerBar({super.key});
   final PlayerController playerController = Get.find<PlayerController>();
+  final PlaybackPositionController playbackPositionController =
+      Get.find<PlaybackPositionController>();
 
   @override
   Widget build(BuildContext context) {
@@ -20,8 +23,9 @@ class PlayerBar extends StatelessWidget {
 
       final episode = playerController.currentEpisode.value;
       final playbackPosition =
-          playerController.playbackPositions[episode?.audioUrl] ??
+          playbackPositionController.getPlaybackPosition(episode?.audioUrl) ??
               Duration.zero;
+
       final duration = Duration(seconds: episode?.durationInSeconds ?? 0);
       final remaining = duration - playbackPosition;
 

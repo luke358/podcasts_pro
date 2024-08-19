@@ -11,28 +11,29 @@ class PlayButton extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Obx(() {
-      final isLoading = playerController.isLoading.value;
-      final isPlaying = playerController.isPlaying.value;
+      // final isLoading = playerController.isLoading.value;
+      final playingState = playerController.playingState;
 
       return IconButton(
         iconSize: size, // 使用传入的 size
-        icon: isLoading
+        icon: playingState == PlayingState.loading
             ? SizedBox(
                 width: size,
                 height: size,
-                child: const CircularProgressIndicator(strokeWidth: 5),
-              )
+                child: const CircularProgressIndicator(
+                  strokeWidth: 3,
+                ))
             : Icon(
-                isPlaying ? Icons.pause : Icons.play_arrow,
+                playingState == PlayingState.playing
+                    ? Icons.pause
+                    : Icons.play_arrow,
                 size: size,
               ),
         onPressed: () {
-          if (!isLoading) {
-            if (isPlaying) {
-              playerController.pause();
-            } else {
-              playerController.play();
-            }
+          if (playingState == PlayingState.playing) {
+            playerController.pause();
+          } else {
+            playerController.play();
           }
         },
       );

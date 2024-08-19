@@ -1,7 +1,10 @@
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:podcasts_pro/constants/routes.dart';
+import 'package:podcasts_pro/pages/main/favorite_controller.dart';
+import 'package:podcasts_pro/pages/main/listen_history_controller.dart';
 import 'package:podcasts_pro/pages/main/main_page.dart';
+import 'package:podcasts_pro/pages/main/playback_position_controller.dart';
 import 'package:podcasts_pro/pages/main/player_controller.dart';
 import 'package:podcasts_pro/pages/main/subscription_controller.dart';
 import 'package:shared_preferences/shared_preferences.dart';
@@ -44,5 +47,8 @@ Future? initializeGetX() async {
   // Initialize the controllers
   Get.put(MainController());
   Get.put(SubscriptionController());
+  Get.put(ListenHistoryController());
+  Get.put(FavoriteController());
+  Get.put(PlaybackPositionController());
   Get.put(PlayerController());
 }

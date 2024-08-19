@@ -2,6 +2,7 @@ import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:podcasts_pro/pages/episode_detail.dart';
+import 'package:podcasts_pro/pages/main/favorite_controller.dart';
 import 'package:podcasts_pro/pages/main/player_controller.dart';
 import 'package:intl/intl.dart'; // Import intl package
 import 'package:podcasts_pro/pages/subscription_detail.dart';
@@ -18,6 +19,7 @@ class PlayerPage extends StatefulWidget {
 class _PlayerPageState extends State<PlayerPage>
     with AutomaticKeepAliveClientMixin<PlayerPage> {
   final PlayerController playerController = Get.find<PlayerController>();
+  final FavoriteController favoriteController = Get.find<FavoriteController>();
 
   @override
   bool get wantKeepAlive => true;
@@ -189,28 +191,28 @@ class _PlayerPageState extends State<PlayerPage>
                                       ListTile(
                                         title: const Text('0.5x'),
                                         onTap: () {
-                                          playerController.setSpeed(0.5);
+                                          // playerController.setSpeed(0.5);
                                           Navigator.of(context).pop();
                                         },
                                       ),
                                       ListTile(
                                         title: const Text('1.0x'),
                                         onTap: () {
-                                          playerController.setSpeed(1.0);
+                                          // playerController.setSpeed(1.0);
                                           Navigator.of(context).pop();
                                         },
                                       ),
                                       ListTile(
                                         title: const Text('1.5x'),
                                         onTap: () {
-                                          playerController.setSpeed(1.5);
+                                          // playerController.setSpeed(1.5);
                                           Navigator.of(context).pop();
                                         },
                                       ),
                                       ListTile(
                                         title: const Text('2.0x'),
                                         onTap: () {
-                                          playerController.setSpeed(2.0);
+                                          // playerController.setSpeed(2.0);
                                           Navigator.of(context).pop();
                                         },
                                       ),
@@ -225,7 +227,7 @@ class _PlayerPageState extends State<PlayerPage>
                         IconButton(
                           icon: const Icon(Icons.skip_previous),
                           onPressed: () {
-                            playerController.prev();
+                            // playerController.prev();
                           },
                         ),
                         const SizedBox(width: 16),
@@ -234,14 +236,14 @@ class _PlayerPageState extends State<PlayerPage>
                         IconButton(
                           icon: const Icon(Icons.skip_next),
                           onPressed: () {
-                            playerController.next();
+                            // playerController.next();
                           },
                         ),
                         const SizedBox(width: 16),
                         IconButton(
                           icon: Obx(() {
                             final isFavorite =
-                                playerController.isFavorite(episode);
+                                favoriteController.isFavorite(episode);
                             return Icon(
                               isFavorite
                                   ? Icons.favorite
@@ -250,7 +252,7 @@ class _PlayerPageState extends State<PlayerPage>
                             );
                           }),
                           onPressed: () {
-                            playerController.addEpisodeToFavorites(episode);
+                            favoriteController.addEpisodeToFavorites(episode);
                           },
                         ),
                       ],
