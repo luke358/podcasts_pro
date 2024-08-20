@@ -26,7 +26,8 @@ class SubscriptionController extends GetxController {
 
   // 添加或替换订阅数据
   Future<bool> addOrReplaceSubscription(Subscription subscription) async {
-    final existingIndex = subscriptions.indexWhere((s) => s.rssUrl == subscription.rssUrl);
+    final existingIndex =
+        subscriptions.indexWhere((s) => s.rssUrl == subscription.rssUrl);
     if (existingIndex != -1) {
       // 如果已存在相同的 RSS URL，替换它
       subscriptions[existingIndex] = subscription;
@@ -35,11 +36,38 @@ class SubscriptionController extends GetxController {
       subscriptions.add(subscription);
     }
 
-    final jsonString = json.encode(subscriptions.map((e) => e.toMap()).toList());
+    final jsonString =
+        json.encode(subscriptions.map((e) => e.toMap()).toList());
     final prefs = await SharedPreferences.getInstance();
     await prefs.setString(_subscriptionsKey, jsonString);
 
     return existingIndex != -1;
+  }
+
+  // 添加或替换多个订阅数据
+  Future<void> addOrReplaceSubscriptions(
+      List<Subscription> newSubscriptions) async {
+    bool hasChanges = false;
+
+    for (var subscription in newSubscriptions) {
+      final existingIndex =
+          subscriptions.indexWhere((s) => s.rssUrl == subscription.rssUrl);
+      if (existingIndex != -1) {
+        // 如果已存在相同的 RSS URL，替换它
+        subscriptions[existingIndex] = subscription;
+      } else {
+        // 否则添加新的订阅
+        subscriptions.add(subscription);
+      }
+      hasChanges = true;
+    }
+
+    if (hasChanges) {
+      final jsonString =
+          json.encode(subscriptions.map((e) => e.toMap()).toList());
+      final prefs = await SharedPreferences.getInstance();
+      await prefs.setString(_subscriptionsKey, jsonString);
+    }
   }
 
   // 检查是否已订阅
@@ -64,7 +92,8 @@ class SubscriptionController extends GetxController {
     } else {
       subscriptions.clear();
     }
-    final jsonString = json.encode(subscriptions.map((e) => e.toMap()).toList());
+    final jsonString =
+        json.encode(subscriptions.map((e) => e.toMap()).toList());
     final prefs = await SharedPreferences.getInstance();
     if (rssUrl != null) {
       await prefs.setString(_subscriptionsKey, jsonString);

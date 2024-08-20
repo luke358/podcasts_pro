@@ -28,11 +28,17 @@ class _AddSubscriptionPageState extends State<AddSubscriptionPage> {
           .where((url) => url.isNotEmpty)
           .toList();
 
-      List<Future<void>> tasks = [];
+      List<Future<Subscription?>> tasks = [];
       for (String rssUrl in rssUrls) {
         tasks.add(_importSubscription(rssUrl));
       }
-      await Future.wait(tasks);
+
+      final subscriptions = await Future.wait(tasks);
+      final successfulSubscriptions = subscriptions.whereType<Subscription>().toList();
+
+      if (successfulSubscriptions.isNotEmpty) {
+        await _subscriptionController.addOrReplaceSubscriptions(successfulSubscriptions);
+      }
     } finally {
       setState(() {
         _isLoading = false;
@@ -40,17 +46,18 @@ class _AddSubscriptionPageState extends State<AddSubscriptionPage> {
     }
   }
 
-  Future<void> _importSubscription(String rssUrl) async {
+  Future<Subscription?> _importSubscription(String rssUrl) async {
     try {
       final subscription = await Subscription.fromRssUrl(rssUrl);
-      await _subscriptionController.addOrReplaceSubscription(subscription);
       setState(() {
         _importResults[rssUrl] = 'Success';
       });
+      return subscription;
     } catch (e) {
       setState(() {
         _importResults[rssUrl] = 'Failed: $e';
       });
+      return null;
     }
   }
 

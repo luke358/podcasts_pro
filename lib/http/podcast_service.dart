@@ -14,7 +14,8 @@ class PodcastService {
 
   Future<String> fetchSubscriptionData() async {
     try {
-      final response = await http.get(Uri.parse(rssUrl));
+      final response =
+          await http.get(Uri.parse(rssUrl)).timeout(const Duration(seconds: 5));
       if (response.statusCode == 200) {
         final body = utf8.decode(response.bodyBytes);
         return body;
