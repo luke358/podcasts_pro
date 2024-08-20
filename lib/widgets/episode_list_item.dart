@@ -1,19 +1,20 @@
 import 'package:flutter/material.dart';
-import 'package:cached_network_image/cached_network_image.dart';
 import 'package:podcasts_pro/models/episode.dart';
 import 'package:intl/intl.dart';
 import 'package:podcasts_pro/pages/episode_detail.dart';
 import 'package:podcasts_pro/pages/main/player_controller.dart';
+import 'package:podcasts_pro/widgets/cache_image.dart';
 import 'package:podcasts_pro/widgets/play_button.dart';
 
 class EpisodeListItem extends StatelessWidget {
   final Episode episode;
   final PlayerController playerController;
-
+  final bool isSubscriptionPage;
   const EpisodeListItem({
     super.key,
     required this.episode,
     required this.playerController,
+    this.isSubscriptionPage = false,
   });
 
   String formatDate(String pubDate) {
@@ -34,68 +35,86 @@ class EpisodeListItem extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return ListTile(
-      // ignore: unnecessary_null_comparison
-      leading: episode.imageUrl != null || episode.subscription.imageUrl != null
-          ? ClipRRect(
-              borderRadius: BorderRadius.circular(10),
-              child: CachedNetworkImage(
-                imageUrl: episode.imageUrl ?? episode.subscription.imageUrl,
-                httpHeaders: const {
-                  'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64)',
-                },
-                placeholder: (context, url) =>
-                    const CircularProgressIndicator(),
-                errorWidget: (context, url, error) => const Icon(Icons.error),
-              ))
-          : null,
-      title: Text(episode.title),
-      subtitle: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Text(
-            episode.description,
-            maxLines: 2,
-            overflow: TextOverflow.ellipsis,
-            style: const TextStyle(color: Colors.black54),
-          ),
-          const SizedBox(height: 4),
-          Text(
-            'Published on: ${formatDate(episode.pubDate.toString())}',
-            style: const TextStyle(color: Colors.grey, fontSize: 12),
-          ),
-          const SizedBox(height: 8),
-          Row(
-            children: [
-              PlayButton(episode: episode, size: 28),
-              const SizedBox(width: 8),
-              TextButton.icon(
-                onPressed: () {
-                  if (playerController.playlist.isEmpty) {
-                    playerController.play(episode);
-                  } else {
-                    playerController.add(episode);
-                  }
-                },
-                icon: const Icon(Icons.playlist_add),
-                label: const Text("稍后听"),
-                style: ElevatedButton.styleFrom(
-                  padding:
-                      const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+    return InkWell(
+      onTap: isSubscriptionPage
+          ? null
+          : () {
+              Navigator.push(
+                context,
+                MaterialPageRoute(
+                  builder: (context) => EpisodeDetailPage(episode: episode),
                 ),
+              );
+            },
+      child: Container(
+        padding: const EdgeInsets.symmetric(vertical: 8.0, horizontal: 16.0),
+        child: Row(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            // Image
+            ClipRRect(
+                borderRadius: BorderRadius.circular(10),
+                child: CacheImage(
+                  url: episode.imageUrl ?? episode.subscription.imageUrl,
+                  size: 80,
+                )),
+            const SizedBox(width: 16.0),
+            // Content
+            Expanded(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  // Title
+                  Text(
+                    episode.title,
+                    style: const TextStyle(
+                        fontWeight: FontWeight.bold, fontSize: 16),
+                  ),
+                  const SizedBox(height: 4.0),
+                  // Description
+                  Text(
+                    isSubscriptionPage
+                        ? episode.subscription.title
+                        : episode.description,
+                    maxLines: 2,
+                    overflow: TextOverflow.ellipsis,
+                    style: const TextStyle(color: Colors.black54),
+                  ),
+                  const SizedBox(height: 4.0),
+                  // Published Date
+                  Text(
+                    'Published on: ${formatDate(episode.pubDate.toString())}',
+                    style: const TextStyle(color: Colors.grey, fontSize: 12),
+                  ),
+                  const SizedBox(height: 8.0),
+                  // Actions
+                  Row(
+                    children: [
+                      PlayButton(episode: episode, size: 28),
+                      const SizedBox(width: 8.0),
+                      TextButton.icon(
+                        onPressed: () {
+                          if (playerController.playlist.isEmpty) {
+                            playerController.play(episode);
+                          } else {
+                            playerController.add(episode);
+                          }
+                        },
+                        icon: const Icon(Icons.playlist_add),
+                        label: const Text("稍后听"),
+                        style: TextButton.styleFrom(
+                          padding: const EdgeInsets.symmetric(
+                              horizontal: 12, vertical: 8),
+                        ),
+                      ),
+                    ],
+                  ),
+                ],
               ),
-            ],
-          ),
-        ],
+            ),
+          ],
+        ),
       ),
-      onTap: () {
-        Navigator.push(
-          context,
-          MaterialPageRoute(
-            builder: (context) => EpisodeDetailPage(episode: episode),
-          ),
-        );
-      },
     );
   }
 }

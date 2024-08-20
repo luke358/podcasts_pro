@@ -3,7 +3,7 @@ import 'package:flutter_html/flutter_html.dart';
 import 'package:get/get.dart';
 import 'package:podcasts_pro/models/episode.dart';
 import 'package:podcasts_pro/pages/main/player_controller.dart';
-import 'package:podcasts_pro/widgets/episode_list_subscription.dart';
+import 'package:podcasts_pro/widgets/episode_list_item.dart';
 import 'package:podcasts_pro/widgets/player_bar.dart';
 
 class EpisodeDetailPage extends StatelessWidget {
@@ -17,13 +17,16 @@ class EpisodeDetailPage extends StatelessWidget {
 
     return Scaffold(
       appBar: AppBar(
-        // title: Text(episode.subscription.title),
-      ),
+          // title: Text(episode.subscription.title),
+          ),
       body: SafeArea(
         child: Column(
           children: [
-            EpisodeListSubscription(
-                episode: episode, playerController: playerController),
+            EpisodeListItem(
+              episode: episode,
+              playerController: playerController,
+              isSubscriptionPage: true,
+            ),
             Expanded(
               child: ListView(
                 padding: const EdgeInsets.all(16.0),

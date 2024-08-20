@@ -1,6 +1,6 @@
-import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
-import 'package:podcasts_pro/models/subscription.dart'; // 确保路径正确
+import 'package:podcasts_pro/models/subscription.dart';
+import 'package:podcasts_pro/widgets/cache_image.dart'; // 确保路径正确
 
 class PodcastHeader extends StatelessWidget {
   final Subscription subscription;
@@ -25,15 +25,9 @@ class PodcastHeader extends StatelessWidget {
           // 左侧的播客封面图
           ClipRRect(
             borderRadius: BorderRadius.circular(8.0),
-            child: CachedNetworkImage(
-              width: 100,
-              height: 100,
-              imageUrl: subscription.imageUrl,
-              httpHeaders: const {
-                'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64)',
-              },
-              placeholder: (context, url) => const CircularProgressIndicator(),
-              errorWidget: (context, url, error) => const Icon(Icons.error),
+            child: CacheImage(
+              url: subscription.imageUrl,
+              size: 100,
             ),
           ),
           const SizedBox(width: 16.0),

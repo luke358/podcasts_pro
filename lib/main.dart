@@ -13,8 +13,10 @@ import 'pages/main/main_controller.dart';
 
 void main() async {
   await initializeGetX();
-
   WidgetsFlutterBinding.ensureInitialized();
+  PaintingBinding.instance.imageCache.maximumSizeBytes =
+      1024 * 1024 * 300; //最大300M
+
   await SharedPreferences
       .getInstance(); // Ensure SharedPreferences is initialized
   runApp(const MyApp());
