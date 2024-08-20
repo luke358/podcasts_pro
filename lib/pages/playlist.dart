@@ -13,7 +13,7 @@ class PlaylistPage extends StatelessWidget {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: const Text('Playlist'),
+        title: const Text('播放列表'),
         actions: [
           IconButton(
             icon: const Icon(Icons.delete_sweep),

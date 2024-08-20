@@ -44,14 +44,19 @@ class PlayerBar extends StatelessWidget {
             child: Row(
               children: [
                 // Left: Image
-                if (playerController.currentEpisode.value?.imageUrl != null)
+                if (playerController.currentEpisode.value?.imageUrl != null ||
+                    playerController
+                            .currentEpisode.value?.subscription.imageUrl !=
+                        null)
                   Padding(
                       padding: const EdgeInsets.only(right: 16.0),
                       child: ClipRRect(
                           borderRadius: BorderRadius.circular(10),
                           child: CachedNetworkImage(
                             imageUrl: playerController
-                                .currentEpisode.value!.imageUrl!,
+                                    .currentEpisode.value!.imageUrl ??
+                                playerController.currentEpisode.value!
+                                    .subscription.imageUrl,
                             httpHeaders: const {
                               'User-Agent':
                                   'Mozilla/5.0 (Windows NT 10.0; Win64; x64)',

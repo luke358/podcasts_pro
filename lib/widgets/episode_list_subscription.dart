@@ -34,11 +34,12 @@ class EpisodeListSubscription extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return ListTile(
-      leading: episode.imageUrl != null
+      // ignore: unnecessary_null_comparison
+      leading: episode.imageUrl != null || episode.subscription.imageUrl != null
           ? ClipRRect(
               borderRadius: BorderRadius.circular(10),
               child: CachedNetworkImage(
-                imageUrl: episode.imageUrl!,
+                imageUrl: episode.imageUrl ?? episode.subscription.imageUrl,
                 httpHeaders: const {
                   'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64)',
                 },
@@ -52,7 +53,7 @@ class EpisodeListSubscription extends StatelessWidget {
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           Text(
-            episode.subscription.author,
+            episode.subscription.title,
             maxLines: 2,
             overflow: TextOverflow.ellipsis,
             style: const TextStyle(color: Colors.black54),

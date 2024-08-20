@@ -8,7 +8,7 @@ MediaItem mediaItemFromEpisode(Episode episode) {
     title: episode.title,
     artist: episode.subscription.author,
     duration: Duration(seconds: episode.durationInSeconds),
-    artUri: Uri.parse(episode.imageUrl ?? ''),
+    artUri: Uri.parse(episode.imageUrl ?? episode.subscription.imageUrl),
     extras: {
       'descriptionHTML': episode.descriptionHTML,
       'pubDate': episode.pubDate.toIso8601String(),
@@ -16,4 +16,3 @@ MediaItem mediaItemFromEpisode(Episode episode) {
     },
   );
 }
-

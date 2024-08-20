@@ -107,7 +107,7 @@ class _FeedPageState extends State<FeedPage>
     super.build(context);
     return Scaffold(
       appBar: AppBar(
-        title: const Text('Podcast Feed'),
+        title: const Text('更新'),
         actions: [
           TextButton.icon(
             onPressed: _navigateToSubscriptions,

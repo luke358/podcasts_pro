@@ -35,12 +35,11 @@ class _PlayerPageState extends State<PlayerPage>
             Navigator.of(context).pop();
           },
         ),
-        title: const Text('Player'),
+        // title: const Text('Player'),
       ),
       body: SafeArea(
         child: Obx(() {
           final episode = playerController.currentEpisode.value;
-
           if (episode == null) {
             return const Center(child: Text('No episode selected.'));
           }
@@ -60,7 +59,8 @@ class _PlayerPageState extends State<PlayerPage>
                     ClipRRect(
                         borderRadius: BorderRadius.circular(10),
                         child: CachedNetworkImage(
-                          imageUrl: episode.imageUrl!,
+                          imageUrl:
+                              episode.imageUrl ?? episode.subscription.imageUrl,
                           httpHeaders: const {
                             'User-Agent':
                                 'Mozilla/5.0 (Windows NT 10.0; Win64; x64)',

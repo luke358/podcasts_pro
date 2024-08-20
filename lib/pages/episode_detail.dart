@@ -17,7 +17,7 @@ class EpisodeDetailPage extends StatelessWidget {
 
     return Scaffold(
       appBar: AppBar(
-        title: Text(episode.title),
+        // title: Text(episode.subscription.title),
       ),
       body: SafeArea(
         child: Column(

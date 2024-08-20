@@ -85,7 +85,7 @@ class _SubscriptionDetailPageState extends State<SubscriptionDetailPage>
     super.build(context);
     return Scaffold(
       appBar: AppBar(
-        title: Text(widget.title),
+        // title: Text(widget.title),
       ),
       body: _isLoading
           ? const Center(child: CircularProgressIndicator())
