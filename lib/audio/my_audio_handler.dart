@@ -305,6 +305,8 @@ class MyAudioHandler extends BaseAudioHandler {
   @override
   Future<void> skipToNext() async {
     print('Skipping to next');
+    if (isSwitching) return;
+
     if (playerController.playlist.isEmpty) return;
     // 只有一个，不处理
     if (playerController.playlist.length == 1) {
@@ -317,13 +319,10 @@ class MyAudioHandler extends BaseAudioHandler {
   }
 
   @override
-  Future<void> seek(Duration position) async {
-    await _player.seek(position);
-  }
-
-  @override
   Future<void> skipToPrevious() async {
     print('Skipping to previous');
+    if (isSwitching) return;
+
     if (playerController.playlist.isEmpty) return;
 
     // 只有一个，不处理
@@ -338,6 +337,11 @@ class MyAudioHandler extends BaseAudioHandler {
     _updateMediaItem(
         mediaItemFromEpisode(playerController.playlist[_currentIndex]));
     await playFromPlaylist();
+  }
+
+  @override
+  Future<void> seek(Duration position) async {
+    await _player.seek(position);
   }
 
   void _remove(int index) async {
