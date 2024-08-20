@@ -40,8 +40,7 @@ class PodcastService {
       } catch (e) {
         print('Error fetching from network: $e');
         if (useCacheOnError) {
-          final cachedData = await PodcastCacheManager.getCachedFile(rssUrl,
-              ignoreCacheValidity: true);
+          final cachedData = await PodcastCacheManager.getCachedFile(rssUrl);
           if (cachedData != null) {
             return _parseEpisodes(cachedData, rssUrl);
           } else {
@@ -56,11 +55,8 @@ class PodcastService {
       // 尝试从缓存中获取数据
       final cachedData = await PodcastCacheManager.getCachedFile(rssUrl);
       if (cachedData != null) {
-        print("使用 cachedData");
-
         return _parseEpisodes(cachedData, rssUrl);
       }
-
       // 如果缓存不存在或过期，从网络获取数据
       try {
         print("缓存不存在或过期，从网络获取数据");
@@ -70,8 +66,7 @@ class PodcastService {
         print('Error fetching from network: $e');
         if (useCacheOnError) {
           // 尝试从缓存中获取过期数据
-          final cachedData = await PodcastCacheManager.getCachedFile(rssUrl,
-              ignoreCacheValidity: true);
+          final cachedData = await PodcastCacheManager.getCachedFile(rssUrl);
           if (cachedData != null) {
             return _parseEpisodes(cachedData, rssUrl);
           } else {
