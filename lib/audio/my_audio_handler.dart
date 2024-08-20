@@ -115,13 +115,15 @@ class MyAudioHandler extends BaseAudioHandler {
 
   Future<void> _broadcastState(PlaybackEvent event) async {
     print('Broadcasting state: ${event.processingState}');
-    _updatePlaybackState();
-    if (playerController.playlist.isNotEmpty &&
-        _currentIndex < playerController.playlist.length) {
-      _updateMediaItem(
-          mediaItemFromEpisode(playerController.playlist[_currentIndex]));
-    } else {
-      _updateMediaItem(null);
+    if (_player.audioSource != null) {
+      _updatePlaybackState();
+      if (playerController.playlist.isNotEmpty &&
+          _currentIndex < playerController.playlist.length) {
+        _updateMediaItem(
+            mediaItemFromEpisode(playerController.playlist[_currentIndex]));
+      } else {
+        _updateMediaItem(null);
+      }
     }
   }
 
