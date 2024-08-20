@@ -11,9 +11,10 @@ class PodcastManager {
   Future<List<List<Episode>>> fetchAllEpisodes({
     bool forceRefresh = false,
     bool useCacheOnError = true,
+    List<String>? rssUrls,
   }) async {
     try {
-      final rssUrls =
+      rssUrls ??=
           _subscriptionController.subscriptions.map((s) => s.rssUrl).toList();
 
       // 对每个 RSS URL 分别处理错误

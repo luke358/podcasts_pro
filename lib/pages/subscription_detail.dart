@@ -108,6 +108,7 @@ class _SubscriptionDetailPageState extends State<SubscriptionDetailPage>
                           (context, index) {
                             final episode = _episodes[index];
                             return EpisodeListItem(
+                              key: ValueKey(episode.audioUrl),
                               episode: episode,
                               playerController: _playerController,
                             );

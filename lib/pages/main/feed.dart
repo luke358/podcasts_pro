@@ -43,9 +43,11 @@ class _FeedPageState extends State<FeedPage>
       _isLoading = true;
     });
     await _loadData();
-    setState(() {
-      _isLoading = false;
-    });
+    if (mounted) {
+      setState(() {
+        _isLoading = false;
+      });
+    }
   }
 
   // 加载数据（不显示loading）

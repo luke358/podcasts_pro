@@ -23,6 +23,7 @@ class EpisodeDetailPage extends StatelessWidget {
         child: Column(
           children: [
             EpisodeListItem(
+              key: ValueKey(episode.audioUrl),
               episode: episode,
               playerController: playerController,
               isSubscriptionPage: true,

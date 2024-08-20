@@ -105,7 +105,10 @@ class PodcastService {
         if (useCacheOnError) {
           final cachedData = await PodcastCacheManager.getCachedFile(rssUrl);
           if (cachedData != null) {
-            return parseEpisodes(ParserParams(cachedData, rssUrl));
+            return await compute(
+              parseEpisodes,
+              ParserParams(cachedData, rssUrl),
+            );
           } else {
             throw Exception(
                 'Failed to load podcast episodes and no cache available');
@@ -118,7 +121,10 @@ class PodcastService {
       // 尝试从缓存中获取数据
       final cachedData = await PodcastCacheManager.getCachedFile(rssUrl);
       if (cachedData != null) {
-        return parseEpisodes(ParserParams(cachedData, rssUrl));
+        return await compute(
+          parseEpisodes,
+          ParserParams(cachedData, rssUrl),
+        );
       }
       // 如果缓存不存在或过期，从网络获取数据
       try {
@@ -131,7 +137,10 @@ class PodcastService {
           // 尝试从缓存中获取过期数据
           final cachedData = await PodcastCacheManager.getCachedFile(rssUrl);
           if (cachedData != null) {
-            return parseEpisodes(ParserParams(cachedData, rssUrl));
+            return await compute(
+              parseEpisodes,
+              ParserParams(cachedData, rssUrl),
+            );
           } else {
             throw Exception(
                 'Failed to load podcast episodes and no cache available');

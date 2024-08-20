@@ -49,6 +49,7 @@ class EpisodeList extends StatelessWidget {
                 ),
               )
             : EpisodeListItem(
+                key: ValueKey(episode.audioUrl),
                 episode: episode,
                 playerController: playerController,
               );
