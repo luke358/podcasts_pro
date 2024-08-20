@@ -6,4 +6,4 @@
 [ ] cache home when change tab
 [x] single podcast disable next and prev
 [x] player page disable next and prev
-[ ] setSpeed
+[x] setSpeed

@@ -36,9 +36,12 @@ class PlayerController extends GetxController {
     await loadCurrentEpisode();
 
     _audioHandler = await initAudioService() as MyAudioHandler;
+
     _audioHandler.setRepeatMode(AudioServiceRepeatMode.all);
 
-    _audioHandler.playFromPlaylist(autoPlay: false);
+    await _audioHandler.playFromPlaylist(autoPlay: false);
+
+    await loadPlaybackSpeed();
 
     playlist.listen((newList) {
       print('List changed: $newList');
@@ -47,6 +50,10 @@ class PlayerController extends GetxController {
     currentEpisode.listen((episode) {
       print("Current episode changed: ${episode?.title}");
       saveCurrentEpisode();
+    });
+    playbackSpeed.listen((speed) {
+      print('Playback speed changed: $speed');
+      _savePlaybackSpeed();
     });
   }
 
@@ -149,6 +156,22 @@ class PlayerController extends GetxController {
       print('Failed to load current episode: $e');
       currentEpisode.value = null;
     }
+  }
+
+  Future<void> setSpeed(double speed) async {
+    playbackSpeed.value = speed;
+    await _audioHandler.setSpeed(speed);
+  }
+
+  Future<void> _savePlaybackSpeed() async {
+    final prefs = await SharedPreferences.getInstance();
+    await prefs.setDouble('playback_speed', playbackSpeed.value);
+  }
+
+  Future<void> loadPlaybackSpeed() async {
+    final prefs = await SharedPreferences.getInstance();
+    playbackSpeed.value = prefs.getDouble('playback_speed') ?? 1.0;
+    await _audioHandler.setSpeed(playbackSpeed.value);
   }
 }
 

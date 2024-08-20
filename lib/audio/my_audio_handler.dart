@@ -289,6 +289,13 @@ class MyAudioHandler extends BaseAudioHandler {
   }
 
   @override
+  Future<void> setSpeed(double speed) async {
+    print('Setting speed: $speed');
+    await _player.setSpeed(speed);
+    _updatePlaybackState();
+  }
+
+  @override
   Future<void> stop() async {
     print('Stopping');
     await _player.stop();

@@ -191,28 +191,28 @@ class _PlayerPageState extends State<PlayerPage>
                                       ListTile(
                                         title: const Text('0.5x'),
                                         onTap: () {
-                                          // playerController.setSpeed(0.5);
+                                          playerController.setSpeed(0.5);
                                           Navigator.of(context).pop();
                                         },
                                       ),
                                       ListTile(
                                         title: const Text('1.0x'),
                                         onTap: () {
-                                          // playerController.setSpeed(1.0);
+                                          playerController.setSpeed(1.0);
                                           Navigator.of(context).pop();
                                         },
                                       ),
                                       ListTile(
                                         title: const Text('1.5x'),
                                         onTap: () {
-                                          // playerController.setSpeed(1.5);
+                                          playerController.setSpeed(1.5);
                                           Navigator.of(context).pop();
                                         },
                                       ),
                                       ListTile(
                                         title: const Text('2.0x'),
                                         onTap: () {
-                                          // playerController.setSpeed(2.0);
+                                          playerController.setSpeed(2.0);
                                           Navigator.of(context).pop();
                                         },
                                       ),
