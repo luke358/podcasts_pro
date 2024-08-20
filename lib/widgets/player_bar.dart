@@ -21,13 +21,12 @@ class PlayerBar extends StatelessWidget {
         return const SizedBox.shrink();
       }
 
-      final episode = playerController.currentEpisode.value;
+      final episode = playerController.currentEpisode.value!;
       final playbackPosition =
-          playbackPositionController.getPlaybackPosition(episode?.audioUrl) ??
+          playbackPositionController.getPlaybackPosition(episode.audioUrl) ??
               Duration.zero;
 
-      // final duration = Duration(seconds: episode?.durationInSeconds ?? 0);
-      final duration = playerController.currentDuration.value;
+      final duration = Duration(seconds: episode.durationInSeconds);
       final remaining = duration - playbackPosition;
 
       return Align(
