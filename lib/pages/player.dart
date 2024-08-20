@@ -168,7 +168,8 @@ class _PlayerPageState extends State<PlayerPage>
                 child: Column(
                   children: [
                     ProgressBar(
-                      duration: Duration(seconds: episode.durationInSeconds),
+                      // duration: Duration(seconds: episode.durationInSeconds),
+                      duration: playerController.currentDuration.value,
                       playbackPosition: playerController.currentPosition.value,
                       onSeek: playerController.seek,
                     ),

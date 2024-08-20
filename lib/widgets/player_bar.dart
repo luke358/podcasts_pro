@@ -26,7 +26,8 @@ class PlayerBar extends StatelessWidget {
           playbackPositionController.getPlaybackPosition(episode?.audioUrl) ??
               Duration.zero;
 
-      final duration = Duration(seconds: episode?.durationInSeconds ?? 0);
+      // final duration = Duration(seconds: episode?.durationInSeconds ?? 0);
+      final duration = playerController.currentDuration.value;
       final remaining = duration - playbackPosition;
 
       return Align(

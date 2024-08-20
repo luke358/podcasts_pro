@@ -26,6 +26,7 @@ class PlayerController extends GetxController {
   var currentEpisode = Rxn<Episode>();
 
   var currentPosition = Duration.zero.obs;
+  var currentDuration = Duration.zero.obs;
   var playbackSpeed = 1.0.obs; // 默认为1.0x速度
 
   @override

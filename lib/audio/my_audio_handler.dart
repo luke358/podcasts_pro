@@ -48,7 +48,12 @@ class MyAudioHandler extends BaseAudioHandler {
 
     // 监听播放器事件
     _player.playbackEventStream.listen(_broadcastState);
-
+    _player.durationStream.listen((duration) {
+      print("duration: $duration");
+      if (duration != null) {
+        playerController.currentDuration.value = duration;
+      }
+    });
     _player.positionStream.listen((position) {
       playerController.currentPosition.value = position;
       if (playerController.currentEpisode.value != null && !isSwitching) {
@@ -140,18 +145,12 @@ class MyAudioHandler extends BaseAudioHandler {
     print('Handling playback completion');
     if (playerController.playlist.isEmpty) {
       clearPlaylist();
-      // await _player.stop();
-      // _updateMediaItem(null);
-      // _updatePlaybackState(stopped: true);
       return;
     }
 
     playerController.playlist.removeAt(_currentIndex);
     if (playerController.playlist.isEmpty) {
       clearPlaylist();
-      // await _player.stop();
-      // _updateMediaItem(null);
-      // _updatePlaybackState(stopped: true);
     } else {
       if (_currentIndex >= playerController.playlist.length) {
         _currentIndex = 0;
@@ -176,8 +175,6 @@ class MyAudioHandler extends BaseAudioHandler {
       clearPlaylist();
       isSwitching = false;
       print('Playlist is empty');
-      // _updateMediaItem(null);
-      // _updatePlaybackState(stopped: true);
       return;
     }
 
@@ -194,7 +191,6 @@ class MyAudioHandler extends BaseAudioHandler {
         _currentIndex < 0) {
       _currentIndex = 0;
     }
-    print("_currentIndex2: $_currentIndex");
 
     final episode = playerController.playlist[_currentIndex];
     playerController.currentEpisode.value = episode;
@@ -204,11 +200,14 @@ class MyAudioHandler extends BaseAudioHandler {
     try {
       await _player
           .setAudioSource(AudioSource.uri(Uri.parse(episode.audioUrl!)));
+      print("cccccc");
       Duration? position =
           _playerbackPositionController.playbackPositions[episode.audioUrl];
       if (position != null &&
           position.inSeconds > 10 &&
-          !(position.inSeconds >= episode.durationInSeconds - 5)) {
+          !(position >=
+              playerController.currentDuration.value -
+                  const Duration(seconds: 5))) {
         await seek(position - const Duration(seconds: 3));
       }
       listenHistoryController.addEpisodeToListenHistory(episode);
