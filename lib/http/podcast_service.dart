@@ -111,22 +111,25 @@ class PodcastService {
       final descriptionElement = item.findElements('description').single;
       final pubDateElement = item.findElements('pubDate').single;
       final audioUrlElement = item.findElements('enclosure').single;
-      final durationElement = item.findElements('itunes:duration').single;
-      final imageElement = item.findElements('itunes:image').single;
+      final durationElement = item.findElements('itunes:duration').firstOrNull;
+      final imageElement = item.findElements('itunes:image').firstOrNull;
 
       final title = titleElement.text;
       final descriptionHTML = descriptionElement.text;
       final pubDate = pubDateElement.text;
       final audioUrl = audioUrlElement.getAttribute('url');
-      final durationInSeconds = parseDurationToSeconds(durationElement.text);
-      final imageUrl = imageElement.getAttribute('href');
+      final durationInSeconds = durationElement != null
+          ? parseDurationToSeconds(durationElement.text)
+          : null;
+      final imageUrl = imageElement?.getAttribute('href');
+
       // 创建 Episode 对象时，附带 Subscription 信息
       episodes.add(Episode(
         title: title,
         descriptionHTML: descriptionHTML,
         pubDate: DateFormat('E, d MMM yyyy HH:mm:ss Z').parse(pubDate),
         audioUrl: audioUrl,
-        durationInSeconds: durationInSeconds,
+        durationInSeconds: durationInSeconds ?? 0,
         imageUrl: imageUrl,
         subscription: subscription, // 传入 Subscription
       ));

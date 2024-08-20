@@ -29,7 +29,7 @@ class EpisodeDetailPage extends StatelessWidget {
                 padding: const EdgeInsets.all(16.0),
                 children: [
                   Html(
-                    data: episode.descriptionHTML,
+                    data: episode.descriptionHTML, // TODO: style format
                   )
                 ],
               ),

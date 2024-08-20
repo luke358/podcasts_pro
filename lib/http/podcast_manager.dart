@@ -16,12 +16,18 @@ class PodcastManager {
       final rssUrls =
           _subscriptionController.subscriptions.map((s) => s.rssUrl).toList();
 
-      final List<Future<List<Episode>>> fetchTasks = rssUrls.map((url) {
-        final service = PodcastService(url);
-        return service.fetchEpisodes(
-          forceRefresh: forceRefresh,
-          useCacheOnError: useCacheOnError,
-        );
+      // 对每个 RSS URL 分别处理错误
+      final List<Future<List<Episode>>> fetchTasks = rssUrls.map((url) async {
+        try {
+          final service = PodcastService(url);
+          return await service.fetchEpisodes(
+            forceRefresh: forceRefresh,
+            useCacheOnError: useCacheOnError,
+          );
+        } catch (e) {
+          print('Error fetching episodes from $url: $e');
+          return <Episode>[]; // 捕获异常后返回空列表
+        }
       }).toList();
 
       // 使用 Future.wait 并发执行所有 fetchTasks

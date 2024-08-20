@@ -52,7 +52,7 @@ class EpisodeListSubscription extends StatelessWidget {
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           Text(
-            episode.subscription.description,
+            episode.subscription.author,
             maxLines: 2,
             overflow: TextOverflow.ellipsis,
             style: const TextStyle(color: Colors.black54),

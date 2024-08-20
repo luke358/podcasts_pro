@@ -59,8 +59,11 @@ class _SubscriptionDetailPageState extends State<SubscriptionDetailPage>
 
   Future<void> _loadData({bool forceRefresh = false}) async {
     try {
-      _episodes = await PodcastService(widget.rssUrl)
-          .fetchEpisodes(forceRefresh: forceRefresh);
+      try {
+        _episodes = await PodcastService(widget.rssUrl)
+            .fetchEpisodes(forceRefresh: forceRefresh);
+        // ignore: empty_catches
+      } catch (e) {}
       if (_episodes.isEmpty) {
         _subscription = await Subscription.fromRssUrl(widget.rssUrl);
       } else {

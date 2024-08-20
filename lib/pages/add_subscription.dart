@@ -21,22 +21,23 @@ class _AddSubscriptionPageState extends State<AddSubscriptionPage> {
       _importResults.clear();
     });
 
-    final rssUrls = _rssUrlController.text
-        .split('\n')
-        .map((url) => url.trim())
-        .where((url) => url.isNotEmpty)
-        .toList();
+    try {
+      final rssUrls = _rssUrlController.text
+          .split('\n')
+          .map((url) => url.trim())
+          .where((url) => url.isNotEmpty)
+          .toList();
 
-    List<Future<void>> tasks = [];
-    for (String rssUrl in rssUrls) {
-      tasks.add(_importSubscription(rssUrl));
+      List<Future<void>> tasks = [];
+      for (String rssUrl in rssUrls) {
+        tasks.add(_importSubscription(rssUrl));
+      }
+      await Future.wait(tasks);
+    } finally {
+      setState(() {
+        _isLoading = false;
+      });
     }
-
-    await Future.wait(tasks);
-
-    setState(() {
-      _isLoading = false;
-    });
   }
 
   Future<void> _importSubscription(String rssUrl) async {

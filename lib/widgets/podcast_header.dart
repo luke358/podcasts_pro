@@ -53,7 +53,7 @@ class PodcastHeader extends StatelessWidget {
                 const SizedBox(height: 8.0),
                 // 假设作者信息可以从订阅数据中获取，或者可以添加一个作者属性
                 Text(
-                  'Author Name', // 使用真实的作者信息替代
+                  subscription.author,
                   style: TextStyle(
                     fontSize: 14,
                     color: Colors.grey[600],

@@ -1,12 +1,13 @@
 import 'dart:convert';
 
 import 'package:podcasts_pro/http/podcast_service.dart';
+import 'package:podcasts_pro/models/episode.dart';
 import 'package:xml/xml.dart' as xml;
 
 class Subscription {
   final String title;
   final String link;
-  final String description;
+  final String descriptionHtml;
   final String imageUrl;
   final String author;
   final DateTime subscriptionDate;
@@ -15,7 +16,7 @@ class Subscription {
   Subscription({
     required this.title,
     required this.link,
-    required this.description,
+    required this.descriptionHtml,
     required this.imageUrl,
     required this.author,
     required this.subscriptionDate,
@@ -38,7 +39,7 @@ class Subscription {
 
     final title = channel.findElements('title').single.text;
     final link = channel.findElements('link').single.text;
-    final description = channel.findElements('description').single.text;
+    final descriptionHtml = channel.findElements('description').single.text;
     final imageUrl =
         channel.findElements('itunes:image').single.getAttribute('href') ?? '';
     final author = channel.findElements('itunes:author').single.text;
@@ -46,7 +47,7 @@ class Subscription {
     return Subscription(
       title: title,
       link: link,
-      description: description,
+      descriptionHtml: descriptionHtml,
       imageUrl: imageUrl,
       author: author,
       subscriptionDate: DateTime.now(),
@@ -58,7 +59,7 @@ class Subscription {
     return {
       'title': title,
       'link': link,
-      'description': description,
+      'descriptionHtml': descriptionHtml,
       'imageUrl': imageUrl,
       'author': author,
       'subscriptionDate': subscriptionDate.toIso8601String(),
@@ -66,11 +67,13 @@ class Subscription {
     };
   }
 
+  get description => parseHtml(descriptionHtml);
+
   factory Subscription.fromMap(Map<String, dynamic> map) {
     return Subscription(
       title: map['title'],
       link: map['link'],
-      description: map['description'],
+      descriptionHtml: map['descriptionHtml'],
       imageUrl: map['imageUrl'],
       author: map['author'],
       subscriptionDate: DateTime.parse(map['subscriptionDate']),
