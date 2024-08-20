@@ -31,13 +31,13 @@ class PlayerController extends GetxController {
   @override
   void onInit() async {
     super.onInit();
+
+    await _loadPlaylist();
+    await loadCurrentEpisode();
+
     _audioHandler = await initAudioService() as MyAudioHandler;
     _audioHandler.setRepeatMode(AudioServiceRepeatMode.all);
 
-    await _loadPlaylist();
-    if (playlist.isNotEmpty) {
-      currentEpisode.value = playlist.first;
-    }
     _audioHandler.playFromPlaylist(autoPlay: false);
 
     playlist.listen((newList) {
@@ -45,7 +45,8 @@ class PlayerController extends GetxController {
       savePlaylist();
     });
     currentEpisode.listen((episode) {
-      // saveCurrentEpisode
+      print("Current episode changed: ${episode?.title}");
+      saveCurrentEpisode();
     });
   }
 
@@ -122,14 +123,36 @@ class PlayerController extends GetxController {
   void stop() {
     _audioHandler.stop();
   }
+
+  Future<void> saveCurrentEpisode() async {
+    final prefs = await SharedPreferences.getInstance();
+    final jsonString = json.encode(currentEpisode.value?.toMap());
+    await prefs.setString('current_episode', jsonString);
+  }
+
+  Future<void> loadCurrentEpisode() async {
+    try {
+      final prefs = await SharedPreferences.getInstance();
+      final jsonString = prefs.getString('current_episode');
+      if (jsonString != null) {
+        final Map<String, dynamic> jsonMap = json.decode(jsonString);
+        final episode = Episode.fromMap(jsonMap);
+        if (playlist.indexWhere((e) => e.audioUrl == episode.audioUrl) != -1) {
+          currentEpisode.value = episode;
+        } else {
+          currentEpisode.value = playlist.isEmpty ? null : playlist.first;
+        }
+      } else {
+        currentEpisode.value = null;
+      }
+    } catch (e) {
+      print('Failed to load current episode: $e');
+      currentEpisode.value = null;
+    }
+  }
 }
 
 
-  // Future<void> saveCurrentEpisode() async {
-  //   final prefs = await SharedPreferences.getInstance();
-  //   final jsonString = json.encode(currentEpisode.value?.toMap());
-  //   await prefs.setString('current_episode', jsonString);
-  // }
 
   // Future<void> loadCurrentEpisode() async {
   //   try {

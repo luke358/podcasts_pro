@@ -39,6 +39,10 @@ class MyAudioHandler extends BaseAudioHandler {
   }
 
   Future<void> _init() async {
+    if (playerController.currentEpisode.value != null) {
+      _currentIndex = playerController.playlist.indexWhere((episode) =>
+          episode.audioUrl == playerController.currentEpisode.value!.audioUrl);
+    }
     // 初始化播放器状态
     _updatePlaybackState(stopped: true);
 
@@ -205,7 +209,7 @@ class MyAudioHandler extends BaseAudioHandler {
       if (position != null &&
           position.inSeconds > 10 &&
           !(position.inSeconds >= episode.durationInSeconds - 5)) {
-        await seek(position);
+        await seek(position - const Duration(seconds: 3));
       }
       listenHistoryController.addEpisodeToListenHistory(episode);
       if (autoPlay) {
@@ -222,15 +226,6 @@ class MyAudioHandler extends BaseAudioHandler {
   Future<void> clearPlaylist() async {
     print('Clearing playlist');
 
-    // 停止当前播放
-    await stop();
-
-    // 清空播放列表
-    playerController.playlist.clear();
-    playerController.savePlaylist();
-    playerController.currentEpisode.value = null;
-    // playerController.saveF
-
     // 重置当前索引
     _currentIndex = -1;
 
@@ -239,6 +234,12 @@ class MyAudioHandler extends BaseAudioHandler {
 
     // 更新播放状态
     _updatePlaybackState(stopped: true);
+    // 停止当前播放
+    await stop();
+
+    // 清空播放列表
+    playerController.playlist.clear();
+    playerController.currentEpisode.value = null;
 
     // 通知队列变化
     _notifyQueueChanges();

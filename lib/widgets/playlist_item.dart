@@ -4,7 +4,7 @@ import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:podcasts_pro/models/episode.dart';
 import 'package:podcasts_pro/pages/main/playback_position_controller.dart';
-import 'package:podcasts_pro/pages/main/player_controller.dart';
+import 'package:podcasts_pro/widgets/play_button.dart';
 
 class PlaylistItem extends StatelessWidget {
   final Episode episode;
@@ -15,7 +15,6 @@ class PlaylistItem extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final playerController = Get.find<PlayerController>();
     final playbackPositionController = Get.find<PlaybackPositionController>();
 
     return Obx(() {
@@ -24,9 +23,6 @@ class PlaylistItem extends StatelessWidget {
               Duration.zero;
       final duration = Duration(seconds: episode.durationInSeconds);
       final remaining = duration - playbackPosition;
-
-      bool isPlaying = playerController.isCurrentEpisode(episode) &&
-          playerController.playingState.value == PlayingState.playing;
 
       return Dismissible(
         key: ValueKey(episode.audioUrl),
@@ -72,22 +68,9 @@ class PlaylistItem extends StatelessWidget {
             '剩余: ${formatRemainingDuration(remaining)}',
             style: const TextStyle(fontSize: 14.0, color: Colors.grey),
           ),
-          trailing: IconButton(
-            icon: Icon(
-              isPlaying ? Icons.pause : Icons.play_arrow,
-              color: isPlaying ? Colors.red : Colors.blue,
-            ),
-            onPressed: () {
-              if (isPlaying) {
-                playerController.pause(); // Pause if currently playing
-              } else {
-                int index = playerController.playlist
-                    .indexWhere((e) => e.audioUrl == episode.audioUrl);
-                if (index != -1) {
-                  playerController.play(episode); // Play if currently paused
-                }
-              }
-            },
+          trailing: PlayButton(
+            episode: episode,
+            size: 28,
           ),
           onTap: () {
             // Optionally handle tap action

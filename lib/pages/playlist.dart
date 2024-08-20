@@ -25,6 +25,11 @@ class PlaylistPage extends StatelessWidget {
       ),
       body: Obx(() {
         final playlist = playerController.playlist;
+        if (playlist.isEmpty) {
+          return const Center(
+            child: Text('Playlist is empty'),
+          );
+        }
         return ListView.builder(
           itemCount: playlist.length,
           itemBuilder: (context, index) {
