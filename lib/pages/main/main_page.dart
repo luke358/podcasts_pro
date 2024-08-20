@@ -1,6 +1,5 @@
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
-// import 'package:podcasts_pro/pages/main/discover.dart';
 import 'package:podcasts_pro/pages/main/feed.dart';
 import 'package:podcasts_pro/pages/main/main_controller.dart';
 import 'package:podcasts_pro/pages/main/me.dart';
@@ -24,16 +23,15 @@ class MainPage extends StatelessWidget {
       return Scaffold(
         body: Stack(
           children: [
-            IndexedStack(
-              index: mainController.selectedIndex,
-              children: pages,
-            ),
             Obx(() {
               final hasCurrentEpisode =
                   playerController.currentEpisode.value != null;
               return Padding(
                 padding: EdgeInsets.only(bottom: hasCurrentEpisode ? 80 : 0),
-                child: pages[mainController.selectedIndex],
+                child: IndexedStack(
+                  index: mainController.selectedIndex,
+                  children: pages,
+                ),
               );
             }),
             // Positioned widget to place PlayerBar at the bottom
