@@ -33,8 +33,14 @@ class Subscription {
     return subscription;
   }
 
-  static Subscription parseSubscription(String xmlString, String rssUrl) {
-    final document = xml.XmlDocument.parse(xmlString);
+  static Subscription parseSubscription<T>(T xmlString, String rssUrl) {
+    xml.XmlDocument document;
+    if (xmlString is String) {
+      document = xml.XmlDocument.parse(xmlString);
+    } else {
+      document = xmlString as xml.XmlDocument;
+    }
+
     final channel = document.findAllElements('channel').first;
 
     final title = channel.findElements('title').single.text;
