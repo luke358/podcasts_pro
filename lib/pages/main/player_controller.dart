@@ -51,7 +51,7 @@ class PlayerController extends GetxController {
 
   Future<void> add(Episode episode) async {
     if (playlist.indexWhere((e) => e.audioUrl == episode.audioUrl) == -1) {
-      playlist.add(episode);
+      _audioHandler.add(episode);
     }
   }
 
@@ -85,14 +85,7 @@ class PlayerController extends GetxController {
   }
 
   void remove(Episode episode) {
-    if (currentEpisode.value?.audioUrl == episode.audioUrl) {
-      _audioHandler.handlePlaybackCompletion();
-    } else {
-      int index = playlist.indexWhere((e) => e.audioUrl == episode.audioUrl);
-      if (index != -1) {
-        _audioHandler.remove(index);
-      }
-    }
+    _audioHandler.remove(episode);
   }
 
   Future<void> seek(Duration position) async {

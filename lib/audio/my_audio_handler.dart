@@ -3,6 +3,7 @@ import 'dart:async';
 import 'package:audio_service/audio_service.dart';
 import 'package:get/instance_manager.dart';
 import 'package:just_audio/just_audio.dart';
+import 'package:podcasts_pro/models/episode.dart';
 import 'package:podcasts_pro/pages/main/listen_history_controller.dart';
 import 'package:podcasts_pro/pages/main/playback_position_controller.dart';
 import 'package:podcasts_pro/pages/main/player_controller.dart';
@@ -72,10 +73,10 @@ class MyAudioHandler extends BaseAudioHandler {
   void _updatePlaybackState({bool stopped = false}) {
     final state = PlaybackState(
       controls: [
-        MediaControl.skipToPrevious,
+        if (hasPrev) MediaControl.skipToPrevious,
         if (_player.playing) MediaControl.pause else MediaControl.play,
-        MediaControl.stop,
-        MediaControl.skipToNext,
+        if (hasNext) MediaControl.skipToNext,
+        // MediaControl.stop,
       ],
       systemActions: const {
         MediaAction.seek,
@@ -131,7 +132,7 @@ class MyAudioHandler extends BaseAudioHandler {
   }
 
   bool isSwitching = false;
-  Future<void> handlePlaybackCompletion() async {
+  Future<void> handlePlaybackCompletion({bool autoPlay = true}) async {
     print('Handling playback completion');
     if (playerController.playlist.isEmpty) {
       clearPlaylist();
@@ -153,7 +154,7 @@ class MyAudioHandler extends BaseAudioHandler {
       }
       _updateMediaItem(
           mediaItemFromEpisode(playerController.playlist[_currentIndex]));
-      await playFromPlaylist();
+      await playFromPlaylist(autoPlay: autoPlay);
     }
     _notifyQueueChanges();
   }
@@ -250,6 +251,28 @@ class MyAudioHandler extends BaseAudioHandler {
     skipToNext();
   }
 
+  Future<void> add(Episode episode) async {
+    if (playerController.playlist
+            .indexWhere((e) => e.audioUrl == episode.audioUrl) ==
+        -1) {
+      playerController.playlist.add(episode);
+      _updatePlaybackState();
+    }
+  }
+
+  void remove(Episode episode) {
+    if (playerController.currentEpisode.value?.audioUrl == episode.audioUrl) {
+      bool wasPlaying = _player.playing;
+      handlePlaybackCompletion(autoPlay: wasPlaying);
+    } else {
+      int index = playerController.playlist
+          .indexWhere((e) => e.audioUrl == episode.audioUrl);
+      if (index != -1) {
+        _remove(index);
+      }
+    }
+  }
+
   @override
   Future<void> play() async {
     print('Playing');
@@ -275,7 +298,10 @@ class MyAudioHandler extends BaseAudioHandler {
   Future<void> skipToNext() async {
     print('Skipping to next');
     if (playerController.playlist.isEmpty) return;
-
+    // 只有一个，不处理
+    if (playerController.playlist.length == 1) {
+      return;
+    }
     _currentIndex = (_currentIndex + 1) % playerController.playlist.length;
     _updateMediaItem(
         mediaItemFromEpisode(playerController.playlist[_currentIndex]));
@@ -292,6 +318,10 @@ class MyAudioHandler extends BaseAudioHandler {
     print('Skipping to previous');
     if (playerController.playlist.isEmpty) return;
 
+    // 只有一个，不处理
+    if (playerController.playlist.length == 1) {
+      return;
+    }
     if (_currentIndex - 1 < 0) {
       _currentIndex = playerController.playlist.length - 1;
     } else {
@@ -302,12 +332,13 @@ class MyAudioHandler extends BaseAudioHandler {
     await playFromPlaylist();
   }
 
-  void remove(int index) async {
+  void _remove(int index) async {
     // 删除前面的
     if (index < _currentIndex) {
       _currentIndex--;
     }
     playerController.playlist.removeAt(index);
+    _updatePlaybackState();
   }
 
   void _notifyQueueChanges() {
@@ -325,4 +356,7 @@ class MyAudioHandler extends BaseAudioHandler {
   Future<void> onNotificationDeleted() async {
     await stop();
   }
+
+  bool get hasNext => playerController.playlist.length > 1;
+  bool get hasPrev => playerController.playlist.length > 1;
 }
