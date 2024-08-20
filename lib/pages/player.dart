@@ -224,21 +224,33 @@ class _PlayerPageState extends State<PlayerPage>
                           },
                         ),
                         const SizedBox(width: 16),
-                        IconButton(
-                          icon: const Icon(Icons.skip_previous),
-                          onPressed: () {
-                            playerController.prev();
-                          },
-                        ),
+                        Obx(() {
+                          final hasMore = playerController.playlist.length > 1;
+                          return IconButton(
+                            icon: Icon(Icons.skip_previous,
+                                color: hasMore ? Colors.black : Colors.grey),
+                            onPressed: () {
+                              if (hasMore) {
+                                playerController.prev();
+                              }
+                            },
+                          );
+                        }),
                         const SizedBox(width: 16),
                         PlayButton(episode: episode),
                         const SizedBox(width: 16),
-                        IconButton(
-                          icon: const Icon(Icons.skip_next),
-                          onPressed: () {
-                            playerController.next();
-                          },
-                        ),
+                        Obx(() {
+                          final hasMore = playerController.playlist.length > 1;
+                          return IconButton(
+                            icon: Icon(Icons.skip_next,
+                                color: hasMore ? Colors.black : Colors.grey),
+                            onPressed: () {
+                              if (hasMore) {
+                                playerController.next();
+                              }
+                            },
+                          );
+                        }),
                         const SizedBox(width: 16),
                         IconButton(
                           icon: Obx(() {
