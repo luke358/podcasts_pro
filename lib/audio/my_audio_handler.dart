@@ -3,6 +3,7 @@ import 'dart:async';
 import 'package:audio_service/audio_service.dart';
 import 'package:get/instance_manager.dart';
 import 'package:just_audio/just_audio.dart';
+import 'package:podcasts_pro/pages/main/listen_history_controller.dart';
 import 'package:podcasts_pro/pages/main/playback_position_controller.dart';
 import 'package:podcasts_pro/pages/main/player_controller.dart';
 import 'package:podcasts_pro/utils/episode.dart';
@@ -23,6 +24,8 @@ Future<AudioHandler> initAudioService() async {
 class MyAudioHandler extends BaseAudioHandler {
   final _player = AudioPlayer();
   final PlayerController playerController = Get.find<PlayerController>();
+  final ListenHistoryController listenHistoryController =
+      Get.find<ListenHistoryController>();
   final PlaybackPositionController _playerbackPositionController =
       Get.find<PlaybackPositionController>();
   final _mediaItemSubject = BehaviorSubject<MediaItem?>();
@@ -203,6 +206,7 @@ class MyAudioHandler extends BaseAudioHandler {
           !(position.inSeconds >= episode.durationInSeconds - 5)) {
         await seek(position);
       }
+      listenHistoryController.addEpisodeToListenHistory(episode);
       if (autoPlay) {
         play();
       }
