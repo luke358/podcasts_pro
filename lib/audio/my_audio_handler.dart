@@ -200,7 +200,6 @@ class MyAudioHandler extends BaseAudioHandler {
     try {
       await _player
           .setAudioSource(AudioSource.uri(Uri.parse(episode.audioUrl!)));
-      print("cccccc");
       Duration? position =
           _playerbackPositionController.playbackPositions[episode.audioUrl];
       if (position != null &&
@@ -209,6 +208,11 @@ class MyAudioHandler extends BaseAudioHandler {
               playerController.currentDuration.value -
                   const Duration(seconds: 5))) {
         await seek(position - const Duration(seconds: 3));
+        // 如果isEndOfEpisodeStopTimerEnabled开启，切换的时候重置 remainingStopTimeInSeconds
+        if (playerController.isEndOfEpisodeStopTimerEnabled.value) {
+          playerController.remainingStopTimeInSeconds.value =
+              episode.durationInSeconds - position.inSeconds;
+        }
       }
       listenHistoryController.addEpisodeToListenHistory(episode);
       if (autoPlay) {

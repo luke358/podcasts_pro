@@ -7,6 +7,7 @@ import 'package:podcasts_pro/pages/main/player_controller.dart';
 import 'package:intl/intl.dart'; // Import intl package
 import 'package:podcasts_pro/pages/subscription_detail.dart';
 import 'package:podcasts_pro/widgets/play_button.dart';
+import 'package:podcasts_pro/widgets/playlist_item.dart';
 import 'package:podcasts_pro/widgets/progress_bar.dart';
 
 class PlayerPage extends StatefulWidget {
@@ -180,84 +181,270 @@ class _PlayerPageState extends State<PlayerPage>
                         IconButton(
                           icon: const Icon(Icons.speed),
                           onPressed: () {
-                            //  showModalBottomSheet<double>(
-                            //   context: context,
-                            //   builder: (BuildContext context) {
-                            //     double _currentSpeed = playerController
-                            //         .playbackSpeed.value; // 使用当前播放速度初始化
-
-                            //     return StatefulBuilder(
-                            //       builder: (BuildContext context,
-                            //           StateSetter setState) {
-                            //         return Container(
-                            //           padding: const EdgeInsets.all(16.0),
-                            //           height: 600,
-                            //           child: Column(
-                            //             mainAxisAlignment:
-                            //                 MainAxisAlignment.center,
-                            //             children: [
-                            //               Text(
-                            //                 '选择播放速度: ${_currentSpeed.toStringAsFixed(1)}x',
-                            //                 style:
-                            //                     const TextStyle(fontSize: 18),
-                            //               ),
-                            //               Obx(() {
-                            //                 final initialSpeed =
-                            //                     playerController
-                            //                         .playbackSpeed.value;
-
-                            //                 return SpeedSlider(
-                            //                     initialSpeed: initialSpeed,
-                            //                     onSpeedChanged:
-                            //                         playerController.setSpeed);
-                            //               })
-                            //             ],
-                            //           ),
-                            //         );
-                            //       },
-                            //     );
-                            //   },
-                            // );
-                            // 弹出一个对话框，让用户选择播放速度
-                            showDialog<double>(
+                            showModalBottomSheet<double>(
                               context: context,
-                              builder: (context) {
-                                return AlertDialog(
-                                  title: const Text('选择播放速度'),
-                                  content: Column(
-                                    mainAxisSize: MainAxisSize.min,
+                              builder: (BuildContext context) {
+                                return SizedBox(child: Obx(() {
+                                  double currentSpeed = playerController
+                                      .playbackSpeed.value; // 使用当前播放速度初始化
+                                  int selectedTime =
+                                      playerController.stopTime.value;
+                                  bool isTimerEnabled =
+                                      playerController.isStopTimerEnabled.value;
+                                  bool isEndOfEpisodeTimerEnabled =
+                                      playerController
+                                          .isEndOfEpisodeStopTimerEnabled.value;
+
+                                  int minutes = playerController
+                                          .remainingStopTimeInSeconds.value ~/
+                                      60;
+                                  int seconds = playerController
+                                          .remainingStopTimeInSeconds.value %
+                                      60;
+                                  return Column(
                                     children: [
-                                      ListTile(
-                                        title: const Text('0.5x'),
-                                        onTap: () {
-                                          playerController.setSpeed(0.5);
-                                          Navigator.of(context).pop();
-                                        },
+                                      Container(
+                                        height:
+                                            80, // Height for playback speed options
+                                        padding: const EdgeInsets.all(16.0),
+                                        child: Row(
+                                          mainAxisAlignment:
+                                              MainAxisAlignment.center,
+                                          children: [
+                                            Expanded(
+                                              child: GestureDetector(
+                                                onTap: () {
+                                                  if (currentSpeed != 0.5) {
+                                                    playerController
+                                                        .setSpeed(0.5);
+                                                    setState(() {
+                                                      currentSpeed = 0.5;
+                                                    });
+                                                  }
+                                                },
+                                                child: Container(
+                                                  color: currentSpeed == 0.5
+                                                      ? Colors.blue
+                                                      : Colors.transparent,
+                                                  padding: const EdgeInsets
+                                                      .symmetric(vertical: 8.0),
+                                                  child: Center(
+                                                      child: Text('0.5x',
+                                                          style: TextStyle(
+                                                            color:
+                                                                currentSpeed ==
+                                                                        0.5
+                                                                    ? Colors
+                                                                        .white
+                                                                    : Colors
+                                                                        .black,
+                                                          ))),
+                                                ),
+                                              ),
+                                            ),
+                                            Expanded(
+                                              child: GestureDetector(
+                                                onTap: () {
+                                                  if (currentSpeed != 1.0) {
+                                                    playerController
+                                                        .setSpeed(1.0);
+                                                    setState(() {
+                                                      currentSpeed = 1.0;
+                                                    });
+                                                  }
+                                                },
+                                                child: Container(
+                                                  color: currentSpeed == 1.0
+                                                      ? Colors.blue
+                                                      : Colors.transparent,
+                                                  padding: const EdgeInsets
+                                                      .symmetric(vertical: 8.0),
+                                                  child: Center(
+                                                      child: Text('1.0x',
+                                                          style: TextStyle(
+                                                            color:
+                                                                currentSpeed ==
+                                                                        1.0
+                                                                    ? Colors
+                                                                        .white
+                                                                    : Colors
+                                                                        .black,
+                                                          ))),
+                                                ),
+                                              ),
+                                            ),
+                                            Expanded(
+                                              child: GestureDetector(
+                                                onTap: () {
+                                                  if (currentSpeed != 1.5) {
+                                                    playerController
+                                                        .setSpeed(1.5);
+                                                    setState(() {
+                                                      currentSpeed = 1.5;
+                                                    });
+                                                  }
+                                                },
+                                                child: Container(
+                                                  color: currentSpeed == 1.5
+                                                      ? Colors.blue
+                                                      : Colors.transparent,
+                                                  padding: const EdgeInsets
+                                                      .symmetric(vertical: 8.0),
+                                                  child: Center(
+                                                      child: Text('1.5x',
+                                                          style: TextStyle(
+                                                            color:
+                                                                currentSpeed ==
+                                                                        1.5
+                                                                    ? Colors
+                                                                        .white
+                                                                    : Colors
+                                                                        .black,
+                                                          ))),
+                                                ),
+                                              ),
+                                            ),
+                                            Expanded(
+                                              child: GestureDetector(
+                                                onTap: () {
+                                                  if (currentSpeed != 2.0) {
+                                                    playerController
+                                                        .setSpeed(2.0);
+                                                    setState(() {
+                                                      currentSpeed = 2.0;
+                                                    });
+                                                  }
+                                                },
+                                                child: Container(
+                                                  color: currentSpeed == 2.0
+                                                      ? Colors.blue
+                                                      : Colors.transparent,
+                                                  padding: const EdgeInsets
+                                                      .symmetric(vertical: 8.0),
+                                                  child: Center(
+                                                      child: Text('2.0x',
+                                                          style: TextStyle(
+                                                            color:
+                                                                currentSpeed ==
+                                                                        2.0
+                                                                    ? Colors
+                                                                        .white
+                                                                    : Colors
+                                                                        .black,
+                                                          ))),
+                                                ),
+                                              ),
+                                            ),
+                                          ],
+                                        ),
                                       ),
-                                      ListTile(
-                                        title: const Text('1.0x'),
-                                        onTap: () {
-                                          playerController.setSpeed(1.0);
-                                          Navigator.of(context).pop();
-                                        },
-                                      ),
-                                      ListTile(
-                                        title: const Text('1.5x'),
-                                        onTap: () {
-                                          playerController.setSpeed(1.5);
-                                          Navigator.of(context).pop();
-                                        },
-                                      ),
-                                      ListTile(
-                                        title: const Text('2.0x'),
-                                        onTap: () {
-                                          playerController.setSpeed(2.0);
-                                          Navigator.of(context).pop();
-                                        },
+                                      Container(
+                                        padding: const EdgeInsets.symmetric(
+                                            horizontal: 16.0, vertical: 8.0),
+                                        child: Column(
+                                          crossAxisAlignment:
+                                              CrossAxisAlignment.start,
+                                          children: [
+                                            Row(
+                                              mainAxisAlignment:
+                                                  MainAxisAlignment
+                                                      .spaceBetween,
+                                              children: [
+                                                Text(
+                                                    '定时关闭: ${isTimerEnabled ? '${minutes.toString().padLeft(2, '0')}:${seconds.toString().padLeft(2, '0')}' : ''}',
+                                                    style: const TextStyle(
+                                                        fontSize: 16,
+                                                        fontWeight:
+                                                            FontWeight.bold)),
+                                                Switch(
+                                                  value: isTimerEnabled,
+                                                  onChanged: (bool value) {
+                                                    playerController
+                                                        .toggleTimer(value);
+                                                  },
+                                                ),
+                                              ],
+                                            ),
+                                            const SizedBox(height: 8),
+                                            const Text('设置定时关闭时间:',
+                                                style: TextStyle(
+                                                    fontSize: 16,
+                                                    fontWeight:
+                                                        FontWeight.bold)),
+                                            const SizedBox(height: 8),
+                                            Wrap(
+                                              spacing: 10,
+                                              children: [
+                                                600,
+                                                1200,
+                                                1800,
+                                                2700,
+                                                3600,
+                                                5400
+                                              ].map((time) {
+                                                return ChoiceChip(
+                                                  label: Text(
+                                                      '${time ~/ 60} min'), // Display time in minutes
+                                                  selected: selectedTime ==
+                                                          time.toDouble() &&
+                                                      isTimerEnabled && !isEndOfEpisodeTimerEnabled,
+                                                  onSelected: (value) {
+                                                    playerController
+                                                        .stopTime.value = time;
+                                                    playerController
+                                                        .toggleTimer(true);
+                                                  },
+                                                );
+                                              }).toList(),
+                                            ),
+                                            const SizedBox(height: 8),
+                                            Text(
+                                                '自定义关闭时间: ${formatRemainingDuration(Duration(seconds: selectedTime))} minutes'),
+                                            Slider(
+                                              value: selectedTime * 1.0,
+                                              min: 600,
+                                              max: 5400,
+                                              // divisions: 5400 - 600,
+                                              label: selectedTime
+                                                  .toStringAsFixed(0),
+                                              onChanged: (value) {
+                                                playerController.stopTime
+                                                    .value = value.toInt();
+                                                playerController
+                                                    .toggleTimer(true);
+                                              },
+                                            ),
+                                            const SizedBox(
+                                              height: 8,
+                                            ),
+                                            SizedBox(height: 16),
+                                            Row(
+                                              mainAxisAlignment:
+                                                  MainAxisAlignment
+                                                      .spaceBetween,
+                                              children: [
+                                                const Text('播完整集再停止播放:',
+                                                    style: TextStyle(
+                                                        fontSize: 16,
+                                                        fontWeight:
+                                                            FontWeight.bold)),
+                                                Switch(
+                                                  value:
+                                                      isEndOfEpisodeTimerEnabled,
+                                                  onChanged: (bool value) {
+                                                    playerController
+                                                        .toggleEndOfEpisodeTimer(
+                                                            value);
+                                                  },
+                                                ),
+                                              ],
+                                            ),
+                                          ],
+                                        ),
                                       ),
                                     ],
-                                  ),
-                                );
+                                  );
+                                }));
                               },
                             );
                           },
