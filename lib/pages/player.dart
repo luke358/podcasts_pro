@@ -7,7 +7,7 @@ import 'package:podcasts_pro/pages/main/player_controller.dart';
 import 'package:intl/intl.dart'; // Import intl package
 import 'package:podcasts_pro/pages/subscription_detail.dart';
 import 'package:podcasts_pro/widgets/play_button.dart';
-import 'package:podcasts_pro/widgets/progress_bar.dart'; // Import ProgressBar component
+import 'package:podcasts_pro/widgets/progress_bar.dart';
 
 class PlayerPage extends StatefulWidget {
   const PlayerPage({super.key});
@@ -180,6 +180,44 @@ class _PlayerPageState extends State<PlayerPage>
                         IconButton(
                           icon: const Icon(Icons.speed),
                           onPressed: () {
+                            //  showModalBottomSheet<double>(
+                            //   context: context,
+                            //   builder: (BuildContext context) {
+                            //     double _currentSpeed = playerController
+                            //         .playbackSpeed.value; // 使用当前播放速度初始化
+
+                            //     return StatefulBuilder(
+                            //       builder: (BuildContext context,
+                            //           StateSetter setState) {
+                            //         return Container(
+                            //           padding: const EdgeInsets.all(16.0),
+                            //           height: 600,
+                            //           child: Column(
+                            //             mainAxisAlignment:
+                            //                 MainAxisAlignment.center,
+                            //             children: [
+                            //               Text(
+                            //                 '选择播放速度: ${_currentSpeed.toStringAsFixed(1)}x',
+                            //                 style:
+                            //                     const TextStyle(fontSize: 18),
+                            //               ),
+                            //               Obx(() {
+                            //                 final initialSpeed =
+                            //                     playerController
+                            //                         .playbackSpeed.value;
+
+                            //                 return SpeedSlider(
+                            //                     initialSpeed: initialSpeed,
+                            //                     onSpeedChanged:
+                            //                         playerController.setSpeed);
+                            //               })
+                            //             ],
+                            //           ),
+                            //         );
+                            //       },
+                            //     );
+                            //   },
+                            // );
                             // 弹出一个对话框，让用户选择播放速度
                             showDialog<double>(
                               context: context,
