@@ -1,0 +1,69 @@
+name: Build and Release APK
+
+on:
+  push:
+    tags:
+      - 'v*'  # 监听以 v 开头的标签
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v2
+
+    - name: Set up Java
+      uses: actions/setup-java@v2
+      with:
+        distribution: 'zulu'
+        java-version: '11'
+
+    - name: Install Flutter
+      uses: subosito/flutter-action@v2
+      with:
+        flutter-version: '3.10.6'  # 替换为你使用的 Flutter 版本
+
+    - name: Flutter clean
+      run: flutter clean
+
+    - name: Install dependencies
+      run: flutter pub get
+
+    - name: Build APK
+      run: flutter build apk --release
+
+    - name: Upload APK
+      uses: actions/upload-artifact@v2
+      with:
+        name: app-release.apk
+        path: build/app/outputs/flutter-apk/app-release.apk
+
+  release:
+    needs: build
+    runs-on: ubuntu-latest
+    steps:
+    - name: Download APK
+      uses: actions/download-artifact@v2
+      with:
+        name: app-release.apk
+
+    - name: Create Release
+      id: create_release
+      uses: actions/create-release@v1
+      env:
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      with:
+        tag_name: ${{ github.ref }}
+        release_name: Release ${{ github.ref }}
+        body: |
+          ## Changelog
+          ${{ steps.changelog.outputs.result }}
+        draft: false
+        prerelease: false
+        files: build/app/outputs/flutter-apk/app-release.apk
+
+    - name: Generate Changelog
+      id: changelog
+      run: |
+        echo "::set-output name=result::$(git log --pretty=format:"%h - %s (%an, %ad)" --date=short HEAD...HEAD^)"
