@@ -4,6 +4,7 @@ on:
   push:
     tags:
       - 'v*'  # 监听以 v 开头的标签
+  workflow_dispatch:  # 支持手动触发
 
 jobs:
   build:
