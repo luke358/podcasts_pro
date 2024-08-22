@@ -1,4 +1,4 @@
-package com.example.podcasts_pro
+package com.luke35.podcasts_pro
 
 import io.flutter.embedding.android.FlutterActivity
 
