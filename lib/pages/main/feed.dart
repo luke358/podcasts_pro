@@ -35,7 +35,7 @@ class _FeedPageState extends State<FeedPage>
     // 监听订阅数据变化并添加防抖处理
     debounce(_subscriptionController.subscriptions, (_) {
       _loadData();
-    }, time: const Duration(seconds: 1)); // 设置防抖延迟时间
+    }, time: const Duration(milliseconds: 500)); // 设置防抖延迟时间
   }
 
   // 初次加载数据
