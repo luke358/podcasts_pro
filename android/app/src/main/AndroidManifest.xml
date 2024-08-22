@@ -10,7 +10,7 @@
     <uses-permission android:name="android.permission.FOREGROUND_SERVICE_MEDIA_PLAYBACK" />
 
     <application
-        android:label="podcasts_pro"
+        android:label="Podcasts Pro"
         android:name="${applicationName}"
         android:icon="@mipmap/ic_launcher">
         <activity
