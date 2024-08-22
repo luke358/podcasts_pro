@@ -41,12 +41,17 @@ class _MyAppState extends State<MyApp> with WidgetsBindingObserver {
   final String initRoute = mainScreenRoute;
 
   @override
+  void initState() {
+    super.initState();
+    WidgetsBinding.instance.addObserver(this);
+  }
+
+  @override
   void didChangeAppLifecycleState(AppLifecycleState state) {
     if (state == AppLifecycleState.resumed) {
-      // 重新设置导航栏颜色
       SystemChrome.setSystemUIOverlayStyle(const SystemUiOverlayStyle(
-        systemNavigationBarColor: Colors.white, // 设置为你想要的颜色
-        systemNavigationBarIconBrightness: Brightness.light,
+        statusBarColor: Colors.transparent,
+        systemNavigationBarColor: Colors.white,
       ));
     }
   }
