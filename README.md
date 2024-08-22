@@ -26,10 +26,17 @@ flutter pub get
 flutter run
 ```
 
+## Installation
+
+[![Latest Release](https://img.shields.io/github/v/release/luke358/podcasts_pro)](https://github.com/luke358/podcasts_pro/releases/latest)
+
+[![Download APK](https://img.shields.io/badge/Download-APK-brightgreen)](https://github.com/luke358/podcasts_pro/releases/latest/download/app-release.apk)
+
 ## TODO
-[x] current Episode
-[x] listen history
-[x] cache home when change tab
-[x] single podcast disable next and prev
-[x] player page disable next and prev
-[x] setSpeed
+
+- [x] current Episode
+- [x] listen history
+- [x] cache home when change tab
+- [x] single podcast disable next and prev
+- [x] player page disable next and prev
+- [x] setSpeed
