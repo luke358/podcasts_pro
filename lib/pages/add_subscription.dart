@@ -34,10 +34,12 @@ class _AddSubscriptionPageState extends State<AddSubscriptionPage> {
       }
 
       final subscriptions = await Future.wait(tasks);
-      final successfulSubscriptions = subscriptions.whereType<Subscription>().toList();
+      final successfulSubscriptions =
+          subscriptions.whereType<Subscription>().toList();
 
       if (successfulSubscriptions.isNotEmpty) {
-        await _subscriptionController.addOrReplaceSubscriptions(successfulSubscriptions);
+        await _subscriptionController
+            .addOrReplaceSubscriptions(successfulSubscriptions);
       }
     } finally {
       setState(() {
@@ -72,8 +74,8 @@ class _AddSubscriptionPageState extends State<AddSubscriptionPage> {
             Expanded(
               child: TextField(
                 controller: _rssUrlController,
-                decoration: InputDecoration(
-                  labelText: 'RSS URLs (one per line)',
+                decoration: const InputDecoration(
+                  labelText: '输入 RSS 地址  (每行一个)',
                   border: OutlineInputBorder(),
                 ),
                 maxLines: null,
@@ -84,8 +86,8 @@ class _AddSubscriptionPageState extends State<AddSubscriptionPage> {
             ElevatedButton(
               onPressed: _isLoading ? null : _addSubscriptions,
               child: _isLoading
-                  ? CircularProgressIndicator()
-                  : Text('Import Subscriptions'),
+                  ? const CircularProgressIndicator()
+                  : const Text('订阅'),
             ),
             const SizedBox(height: 16),
             Expanded(
@@ -98,8 +100,8 @@ class _AddSubscriptionPageState extends State<AddSubscriptionPage> {
                     title: Text(rssUrl),
                     subtitle: Text(result!),
                     leading: result == 'Success'
-                        ? Icon(Icons.check_circle, color: Colors.green)
-                        : Icon(Icons.error, color: Colors.red),
+                        ? const Icon(Icons.check_circle, color: Colors.green)
+                        : const Icon(Icons.error, color: Colors.red),
                   );
                 },
               ),

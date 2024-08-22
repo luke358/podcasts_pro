@@ -1,12 +1,13 @@
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
+import 'package:podcasts_pro/config/route.dart';
+import 'package:podcasts_pro/config/theme.dart';
 import 'package:podcasts_pro/http/podcast_manager.dart';
 import 'package:podcasts_pro/models/episode.dart';
 import 'package:podcasts_pro/pages/add_subscription.dart';
 import 'package:podcasts_pro/pages/main/player_controller.dart';
 import 'package:podcasts_pro/pages/main/subscription_controller.dart';
 import 'package:podcasts_pro/pages/my_subscriptions.dart';
-import 'package:podcasts_pro/pages/playlist.dart';
 import 'package:podcasts_pro/widgets/episode_list.dart';
 
 class FeedPage extends StatefulWidget {
@@ -93,14 +94,14 @@ class _FeedPageState extends State<FeedPage>
   void _navigateToSubscriptions() {
     Navigator.push(
       context,
-      MaterialPageRoute(builder: (context) => const MySubscriptionsPage()),
+      Right2LeftPageRoute(page: const MySubscriptionsPage()),
     );
   }
 
   void _navigateToAddSubscriptions() {
     Navigator.push(
       context,
-      MaterialPageRoute(builder: (context) => AddSubscriptionPage()),
+      Right2LeftPageRoute(page: AddSubscriptionPage()),
     );
   }
 
@@ -112,20 +113,15 @@ class _FeedPageState extends State<FeedPage>
         title: const Text('更新'),
         actions: [
           TextButton.icon(
-            onPressed: _navigateToSubscriptions,
-            icon: const Icon(Icons.wifi_tethering),
-            label: const Text('我的订阅节目'),
-          ),
-          TextButton.icon(
-            onPressed: () {
-              Navigator.push(
-                context,
-                MaterialPageRoute(builder: (context) => PlaylistPage()),
-              );
-            },
-            icon: const Icon(Icons.wifi_tethering),
-            label: const Text('PlayList'),
-          ),
+              onPressed: _navigateToSubscriptions,
+              icon: const Icon(Icons.wifi_tethering),
+              label: const Text('我的订阅节目'),
+              style: ButtonStyle(
+                iconColor: WidgetStateProperty.resolveWith(
+                    (states) => ThemeColor.primary),
+                foregroundColor: WidgetStateProperty.resolveWith(
+                    (states) => ThemeColor.primary),
+              )),
         ],
       ),
       body: _isLoading

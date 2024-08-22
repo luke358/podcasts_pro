@@ -1,7 +1,9 @@
 import 'package:flutter/material.dart';
+import 'package:podcasts_pro/config/route.dart';
 import 'package:podcasts_pro/pages/add_subscription.dart';
 import 'package:podcasts_pro/pages/favorites.dart';
 import 'package:podcasts_pro/pages/listen_history.dart';
+import 'package:podcasts_pro/pages/playlist.dart';
 
 class MePage extends StatefulWidget {
   const MePage({super.key});
@@ -30,7 +32,7 @@ class _MePageState extends State<MePage>
               onTap: () {
                 Navigator.push(
                   context,
-                  MaterialPageRoute(builder: (context) => ListenHistoryPage()),
+                  Right2LeftPageRoute(page: ListenHistoryPage()),
                 );
               },
             ),
@@ -39,7 +41,7 @@ class _MePageState extends State<MePage>
               onTap: () {
                 Navigator.push(
                   context,
-                  MaterialPageRoute(builder: (context) => FavoritesPage()),
+                  Right2LeftPageRoute(page: FavoritesPage()),
                 );
               },
             ),
@@ -48,8 +50,16 @@ class _MePageState extends State<MePage>
               onTap: () {
                 Navigator.push(
                   context,
-                  MaterialPageRoute(
-                      builder: (context) => AddSubscriptionPage()),
+                  Right2LeftPageRoute(page: AddSubscriptionPage()),
+                );
+              },
+            ),
+            ListTile(
+              title: const Text('播放列表'),
+              onTap: () {
+                Navigator.push(
+                  context,
+                  Right2LeftPageRoute(page: PlaylistPage()),
                 );
               },
             ),

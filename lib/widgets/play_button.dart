@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
+import 'package:podcasts_pro/config/theme.dart';
 import 'package:podcasts_pro/models/episode.dart';
 import 'package:podcasts_pro/pages/main/player_controller.dart';
 
@@ -30,7 +31,7 @@ class PlayButton extends StatelessWidget {
                         : Icons.play_arrow,
                     color: playingState.value == PlayingState.playing
                         ? Colors.red
-                        : Colors.blue,
+                        : ThemeColor.active,
                     size: size,
                   )
             : const Icon(

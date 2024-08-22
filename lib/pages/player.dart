@@ -1,6 +1,7 @@
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
+import 'package:podcasts_pro/config/route.dart';
 import 'package:podcasts_pro/pages/episode_detail.dart';
 import 'package:podcasts_pro/pages/main/favorite_controller.dart';
 import 'package:podcasts_pro/pages/main/player_controller.dart';
@@ -84,12 +85,9 @@ class _PlayerPageState extends State<PlayerPage>
                     GestureDetector(
                       onTap: () {
                         Navigator.push(
-                          context,
-                          MaterialPageRoute(
-                            builder: (context) =>
-                                EpisodeDetailPage(episode: episode),
-                          ),
-                        );
+                            context,
+                            Right2LeftPageRoute(
+                                page: EpisodeDetailPage(episode: episode)));
                       },
                       child: Text(
                         episode.title,
@@ -106,8 +104,8 @@ class _PlayerPageState extends State<PlayerPage>
                       onTap: () {
                         Navigator.push(
                           context,
-                          MaterialPageRoute(
-                            builder: (context) => SubscriptionDetailPage(
+                          Right2LeftPageRoute(
+                            page: SubscriptionDetailPage(
                               rssUrl: episode.subscription.rssUrl, // 传递 rssUrl
                               title: episode.subscription.title,
                             ),
@@ -387,7 +385,8 @@ class _PlayerPageState extends State<PlayerPage>
                                                       '${time ~/ 60} min'), // Display time in minutes
                                                   selected: selectedTime ==
                                                           time.toDouble() &&
-                                                      isTimerEnabled && !isEndOfEpisodeTimerEnabled,
+                                                      isTimerEnabled &&
+                                                      !isEndOfEpisodeTimerEnabled,
                                                   onSelected: (value) {
                                                     playerController
                                                         .stopTime.value = time;

@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:podcasts_pro/config/route.dart';
 import 'package:podcasts_pro/models/episode.dart';
 import 'package:intl/intl.dart';
 import 'package:podcasts_pro/pages/episode_detail.dart';
@@ -41,9 +42,10 @@ class EpisodeListItem extends StatelessWidget {
           : () {
               Navigator.push(
                 context,
-                MaterialPageRoute(
-                  builder: (context) => EpisodeDetailPage(episode: episode),
-                ),
+                Right2LeftPageRoute(
+                    page: EpisodeDetailPage(
+                  episode: episode,
+                )),
               );
             },
       child: Container(

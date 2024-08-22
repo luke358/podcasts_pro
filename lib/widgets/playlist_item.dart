@@ -1,6 +1,7 @@
 // PlaylistItem.dart
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
+import 'package:podcasts_pro/config/route.dart';
 import 'package:podcasts_pro/models/episode.dart';
 import 'package:podcasts_pro/pages/episode_detail.dart';
 import 'package:podcasts_pro/pages/main/playback_position_controller.dart';
@@ -46,8 +47,8 @@ class PlaylistItem extends StatelessWidget {
             onTap: () {
               Navigator.push(
                 context,
-                MaterialPageRoute(
-                  builder: (context) => EpisodeDetailPage(episode: episode),
+                Right2LeftPageRoute(
+                  page: EpisodeDetailPage(episode: episode),
                 ),
               );
             },

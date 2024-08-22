@@ -1,6 +1,8 @@
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
+import 'package:podcasts_pro/config/route.dart';
+import 'package:podcasts_pro/config/theme.dart';
 import 'package:podcasts_pro/pages/main/playback_position_controller.dart';
 import 'package:podcasts_pro/pages/main/player_controller.dart';
 import 'package:podcasts_pro/pages/player.dart';
@@ -33,10 +35,12 @@ class PlayerBar extends StatelessWidget {
         alignment: Alignment.bottomCenter,
         child: InkWell(
           onTap: () {
-            navigateToPlayerPage(context);
+            Navigator.of(context)
+                .push(Bottom2TopPageRoute(page: const PlayerPage()));
           },
           child: Material(
             elevation: 10.0,
+            color: ThemeColor.page,
             child: Container(
               height: 80,
               padding:
@@ -100,8 +104,8 @@ class PlayerBar extends StatelessWidget {
                         onPressed: () {
                           Navigator.push(
                             context,
-                            MaterialPageRoute(
-                              builder: (context) => PlaylistPage(),
+                            Right2LeftPageRoute(
+                              page: PlaylistPage(),
                             ),
                           );
                         },
@@ -116,28 +120,4 @@ class PlayerBar extends StatelessWidget {
       );
     });
   }
-}
-
-void navigateToPlayerPage(BuildContext context) {
-  Navigator.of(context).push(_createRoute());
-}
-
-Route _createRoute() {
-  return PageRouteBuilder(
-    pageBuilder: (context, animation, secondaryAnimation) => PlayerPage(),
-    transitionsBuilder: (context, animation, secondaryAnimation, child) {
-      const begin = Offset(0.0, 1.0);
-      const end = Offset.zero;
-      const curve = Curves.easeInOut;
-
-      final tween =
-          Tween(begin: begin, end: end).chain(CurveTween(curve: curve));
-      final offsetAnimation = animation.drive(tween);
-
-      return SlideTransition(
-        position: offsetAnimation,
-        child: child,
-      );
-    },
-  );
 }

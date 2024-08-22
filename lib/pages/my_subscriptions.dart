@@ -1,6 +1,7 @@
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
+import 'package:podcasts_pro/config/route.dart';
 import 'package:podcasts_pro/pages/subscription_detail.dart';
 import 'package:podcasts_pro/pages/main/subscription_controller.dart';
 import 'package:podcasts_pro/widgets/player_bar.dart'; // Ensure this import
@@ -33,8 +34,8 @@ class _MySubscriptionsPageState extends State<MySubscriptionsPage> {
           return Stack(
             children: [
               Padding(
-                padding: const EdgeInsets.only(
-                    bottom: 80.0), // Add padding for PlayerBar
+                padding:
+                    const EdgeInsets.only(bottom: 80.0, left: 15, right: 15),
                 child: GridView.builder(
                   gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
                     crossAxisCount: 3,
@@ -47,14 +48,12 @@ class _MySubscriptionsPageState extends State<MySubscriptionsPage> {
                     return GestureDetector(
                       onTap: () {
                         Navigator.push(
-                          context,
-                          MaterialPageRoute(
-                            builder: (context) => SubscriptionDetailPage(
+                            context,
+                            Right2LeftPageRoute(
+                                page: SubscriptionDetailPage(
                               rssUrl: subscription.rssUrl, // 传递 rssUrl
                               title: subscription.title,
-                            ),
-                          ),
-                        );
+                            )));
                       },
                       child: Card(
                         child: Column(
