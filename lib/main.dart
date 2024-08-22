@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:get/get.dart';
 import 'package:podcasts_pro/constants/routes.dart';
 import 'package:podcasts_pro/pages/main/favorite_controller.dart';
@@ -20,11 +21,34 @@ void main() async {
   await SharedPreferences
       .getInstance(); // Ensure SharedPreferences is initialized
   runApp(const MyApp());
+
+  SystemChrome.setSystemUIOverlayStyle(const SystemUiOverlayStyle(
+    statusBarColor: Colors.transparent, // 状态栏透明
+    systemNavigationBarColor: Colors.white, // 导航栏颜色
+    // systemNavigationBarIconBrightness: Brightness.light, // 导航栏图标亮度
+  ));
 }
 
-class MyApp extends StatelessWidget {
+class MyApp extends StatefulWidget {
   const MyApp({super.key});
+
+  @override
+  State<MyApp> createState() => _MyAppState();
+}
+
+class _MyAppState extends State<MyApp> with WidgetsBindingObserver {
   final String initRoute = mainScreenRoute;
+
+  @override
+  void didChangeAppLifecycleState(AppLifecycleState state) {
+    if (state == AppLifecycleState.resumed) {
+      // 重新设置导航栏颜色
+      SystemChrome.setSystemUIOverlayStyle(const SystemUiOverlayStyle(
+        systemNavigationBarColor: Colors.white, // 设置为你想要的颜色
+        systemNavigationBarIconBrightness: Brightness.light,
+      ));
+    }
+  }
 
   // This widget is the root of your application.
   @override
@@ -32,7 +56,10 @@ class MyApp extends StatelessWidget {
     return MaterialApp(
       title: 'Podcasts Pro',
       theme: ThemeData(
-        colorScheme: ColorScheme.fromSeed(seedColor: Colors.deepPurple),
+        colorScheme: ColorScheme.fromSeed(
+            seedColor: Colors.black,
+            primary: Colors.black,
+            background: Colors.white),
         appBarTheme: const AppBarTheme(
           scrolledUnderElevation: 0.0,
           backgroundColor: Colors.white, // 固定颜色

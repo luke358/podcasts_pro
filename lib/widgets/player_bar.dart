@@ -35,79 +35,81 @@ class PlayerBar extends StatelessWidget {
           onTap: () {
             navigateToPlayerPage(context);
           },
-          child: Container(
-            height: 80,
-            color: Colors.grey[200],
-            padding:
-                const EdgeInsets.symmetric(horizontal: 16.0, vertical: 8.0),
-            child: Row(
-              children: [
-                // Left: Image
-                if (playerController.currentEpisode.value?.imageUrl != null ||
-                    playerController
-                            .currentEpisode.value?.subscription.imageUrl !=
-                        null)
-                  Padding(
-                      padding: const EdgeInsets.only(right: 16.0),
-                      child: ClipRRect(
-                          borderRadius: BorderRadius.circular(10),
-                          child: CachedNetworkImage(
-                            imageUrl: playerController
-                                    .currentEpisode.value!.imageUrl ??
-                                playerController.currentEpisode.value!
-                                    .subscription.imageUrl,
-                            httpHeaders: const {
-                              'User-Agent':
-                                  'Mozilla/5.0 (Windows NT 10.0; Win64; x64)',
-                            },
-                            placeholder: (context, url) =>
-                                const CircularProgressIndicator(),
-                            errorWidget: (context, url, error) =>
-                                const Icon(Icons.error),
-                          ))),
-                // Center: Title and Remaining Time
-                Expanded(
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
+          child: Material(
+            elevation: 10.0,
+            child: Container(
+              height: 80,
+              padding:
+                  const EdgeInsets.symmetric(horizontal: 16.0, vertical: 8.0),
+              child: Row(
+                children: [
+                  // Left: Image
+                  if (playerController.currentEpisode.value?.imageUrl != null ||
+                      playerController
+                              .currentEpisode.value?.subscription.imageUrl !=
+                          null)
+                    Padding(
+                        padding: const EdgeInsets.only(right: 16.0),
+                        child: ClipRRect(
+                            borderRadius: BorderRadius.circular(10),
+                            child: CachedNetworkImage(
+                              imageUrl: playerController
+                                      .currentEpisode.value!.imageUrl ??
+                                  playerController.currentEpisode.value!
+                                      .subscription.imageUrl,
+                              httpHeaders: const {
+                                'User-Agent':
+                                    'Mozilla/5.0 (Windows NT 10.0; Win64; x64)',
+                              },
+                              placeholder: (context, url) =>
+                                  const CircularProgressIndicator(),
+                              errorWidget: (context, url, error) =>
+                                  const Icon(Icons.error),
+                            ))),
+                  // Center: Title and Remaining Time
+                  Expanded(
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Text(
+                          playerController.currentEpisode.value?.title ??
+                              'No Episode Playing',
+                          style: const TextStyle(
+                              fontSize: 16.0, fontWeight: FontWeight.bold),
+                          overflow: TextOverflow.ellipsis,
+                        ),
+                        const SizedBox(height: 4.0),
+                        Text(
+                          '剩余: ${formatRemainingDuration(remaining)}',
+                          style: const TextStyle(
+                              fontSize: 14.0, color: Colors.grey),
+                        ),
+                      ],
+                    ),
+                  ),
+                  // Right: Play, Playlist Icons
+                  Row(
                     children: [
-                      Text(
-                        playerController.currentEpisode.value?.title ??
-                            'No Episode Playing',
-                        style: const TextStyle(
-                            fontSize: 16.0, fontWeight: FontWeight.bold),
-                        overflow: TextOverflow.ellipsis,
+                      PlayButton(
+                        episode: playerController.currentEpisode.value!,
+                        size: 25,
                       ),
-                      const SizedBox(height: 4.0),
-                      Text(
-                        '剩余: ${formatRemainingDuration(remaining)}',
-                        style:
-                            const TextStyle(fontSize: 14.0, color: Colors.grey),
+                      const SizedBox(width: 8.0),
+                      IconButton(
+                        icon: const Icon(Icons.playlist_play),
+                        onPressed: () {
+                          Navigator.push(
+                            context,
+                            MaterialPageRoute(
+                              builder: (context) => PlaylistPage(),
+                            ),
+                          );
+                        },
                       ),
                     ],
                   ),
-                ),
-                // Right: Play, Playlist Icons
-                Row(
-                  children: [
-                    PlayButton(
-                      episode: playerController.currentEpisode.value!,
-                      size: 25,
-                    ),
-                    const SizedBox(width: 8.0),
-                    IconButton(
-                      icon: const Icon(Icons.playlist_play),
-                      onPressed: () {
-                        Navigator.push(
-                          context,
-                          MaterialPageRoute(
-                            builder: (context) => PlaylistPage(),
-                          ),
-                        );
-                      },
-                    ),
-                  ],
-                ),
-              ],
+                ],
+              ),
             ),
           ),
         ),
