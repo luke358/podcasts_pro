@@ -22,7 +22,7 @@ jobs:
     - name: Install Flutter
       uses: subosito/flutter-action@v2
       with:
-        flutter-version: '3.10.6'  # 替换为你使用的 Flutter 版本
+        flutter-version: '3.22.2'  # 替换为你使用的 Flutter 版本
 
     - name: Flutter clean
       run: flutter clean
