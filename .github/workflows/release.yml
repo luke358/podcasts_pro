@@ -1,90 +1,83 @@
-name: Flutter Release
+name: Build and Release APK
 
 on:
   push:
     tags:
-      - 'v*' # 这将匹配所有以v开头的tag，例如v1.0.0, v2.1.3等
+      - 'v*'  # 监听以 v 开头的标签
+  workflow_dispatch:  # 支持手动触发
 
 jobs:
   build:
     runs-on: ubuntu-latest
-    
+
     steps:
-    - uses: actions/checkout@v2
-    
-    - name: Setup Flutter
+    - name: Checkout code
+      uses: actions/checkout@v2
+      with:
+        fetch-depth: 0  # 获取所有历史记录，用于生成更完整的 Changelog
+
+    - name: Set up Java
+      uses: actions/setup-java@v2
+      with:
+        distribution: 'zulu'
+        java-version: '11'
+
+    - name: Install Flutter
       uses: subosito/flutter-action@v2
       with:
-        flutter-version: '3.x' # 使用最新的稳定版本
-    
-    - name: Get dependencies
+        flutter-version: '3.22.2'  # 替换为你使用的 Flutter 版本
+
+    - name: Flutter clean
+      run: flutter clean
+
+    - name: Install dependencies
       run: flutter pub get
-    
-    - name: Run tests
-      run: flutter test
-    
+
     - name: Build APK
       run: flutter build apk --release
-    
-    - name: Build App Bundle
-      run: flutter build appbundle --release
-    
-    - name: Upload APK
+
+    - name: Generate Changelog
+      id: changelog
+      run: |
+        PREVIOUS_TAG=$(git describe --tags --abbrev=0 HEAD^)
+        echo "::set-output name=result::$(git log --pretty=format:"- %s (%h)" ${PREVIOUS_TAG}..HEAD)"
+
+    - name: Upload APK Artifact
       uses: actions/upload-artifact@v2
       with:
-        name: release-apk
+        name: app-release.apk
         path: build/app/outputs/flutter-apk/app-release.apk
-    
-    - name: Upload App Bundle
-      uses: actions/upload-artifact@v2
-      with:
-        name: release-bundle
-        path: build/app/outputs/bundle/release/app-release.aab
 
   release:
     needs: build
     runs-on: ubuntu-latest
-    
+
     steps:
-    - uses: actions/checkout@v2
-    
     - name: Download APK
       uses: actions/download-artifact@v2
       with:
-        name: release-apk
-    
-    - name: Download App Bundle
-      uses: actions/download-artifact@v2
-      with:
-        name: release-bundle
-    
+        name: app-release.apk
+
     - name: Create Release
       id: create_release
       uses: actions/create-release@v1
       env:
-        RELEASE_TOKEN: ${{ secrets.RELEASE_TOKEN }}
+        GITHUB_TOKEN: ${{ secrets.RELEASE_TOKEN }}
       with:
         tag_name: ${{ github.ref }}
         release_name: Release ${{ github.ref }}
+        body: |
+          ## Changelog
+          ${{ needs.build.outputs.changelog }}
         draft: false
         prerelease: false
-    
-    - name: Upload APK Asset
+
+    - name: Upload Release Asset
       uses: actions/upload-release-asset@v1
       env:
-        RELEASE_TOKEN: ${{ secrets.RELEASE_TOKEN }}
+        GITHUB_TOKEN: ${{ secrets.RELEASE_TOKEN }}
       with:
         upload_url: ${{ steps.create_release.outputs.upload_url }}
         asset_path: ./app-release.apk
         asset_name: app-release.apk
         asset_content_type: application/vnd.android.package-archive
-    
-    - name: Upload App Bundle Asset
-      uses: actions/upload-release-asset@v1
-      env:
-        RELEASE_TOKEN: ${{ secrets.RELEASE_TOKEN }}
-      with:
-        upload_url: ${{ steps.create_release.outputs.upload_url }}
-        asset_path: ./app-release.aab
-        asset_name: app-release.aab
-        asset_content_type: application/octet-stream
