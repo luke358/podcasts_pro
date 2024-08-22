@@ -14,7 +14,7 @@ Future<AudioHandler> initAudioService() async {
   return await AudioService.init(
     builder: () => MyAudioHandler(),
     config: const AudioServiceConfig(
-      androidNotificationChannelId: 'com.luke358.podcasts_pro',
+      androidNotificationChannelId: 'com.luke358.podcasts_pro.channel',
       androidNotificationChannelName: 'Podcasts Pro',
       androidNotificationOngoing: true,
       androidStopForegroundOnPause: true,

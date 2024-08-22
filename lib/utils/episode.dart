@@ -4,7 +4,7 @@ import 'package:podcasts_pro/models/episode.dart';
 MediaItem mediaItemFromEpisode(Episode episode) {
   return MediaItem(
     id: episode.audioUrl ?? '',
-    album: "Podcasts Pro",
+    album: episode.subscription.title,
     title: episode.title,
     artist: episode.subscription.author,
     duration: Duration(seconds: episode.durationInSeconds),
