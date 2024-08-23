@@ -1,5 +1,5 @@
 <div align="center">
-    <img src="/assets/images/logo.png" alt="logo" width="100" height="100" style="border-radius: 10px;">
+    <img src="/assets/images/logo_round.png" alt="logo" width="100" height="100" style="border-radius: 10px;">
     <h1>PodCasts Pro</h1>
     <p>PodCasts is a straightforward podcast client designed with user privacy in mind.</p>
 </div>
