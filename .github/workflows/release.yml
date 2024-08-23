@@ -34,12 +34,10 @@ jobs:
 
       - name: Print non-sensitive environment variables
         run: |
-          echo "ANDROID_KEYSTORE_PATH is set to: [REDACTED]"
           echo "ANDROID_KEYSTORE_PASSWORD is set to: [REDACTED]"
           echo "ANDROID_KEY_ALIAS is set to: [REDACTED]"
           echo "ANDROID_KEY_PASSWORD is set to: [REDACTED]"
         env:
-          ANDROID_KEYSTORE_PATH: ${{ secrets.ANDROID_KEYSTORE_PATH }}
           ANDROID_KEYSTORE_PASSWORD: ${{ secrets.ANDROID_KEYSTORE_PASSWORD }}
           ANDROID_KEY_ALIAS: ${{ secrets.ANDROID_KEY_ALIAS }}
           ANDROID_KEY_PASSWORD: ${{ secrets.ANDROID_KEY_PASSWORD }}
