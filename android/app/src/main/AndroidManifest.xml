@@ -15,7 +15,7 @@
         android:name="${applicationName}"
         android:icon="@mipmap/ic_launcher">
         <activity
-            android:name="com.ryanheise.audioservice.AudioServiceActivity"
+            android:name=".MainActivity"
             android:exported="true"
             android:launchMode="singleTop"
             android:theme="@style/LaunchTheme"

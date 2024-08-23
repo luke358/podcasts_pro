@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_splash_screen/flutter_splash_screen.dart';
 import 'package:get/get.dart';
 import 'package:podcasts_pro/config/route.dart';
 import 'package:podcasts_pro/config/theme.dart';
@@ -43,11 +44,15 @@ class _FeedPageState extends State<FeedPage>
     setState(() {
       _isLoading = true;
     });
-    await _loadData();
-    if (mounted) {
-      setState(() {
-        _isLoading = false;
-      });
+    try {
+      await _loadData();
+    } finally {
+      FlutterSplashScreen.hide();
+      if (mounted) {
+        setState(() {
+          _isLoading = false;
+        });
+      }
     }
   }
 

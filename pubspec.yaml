@@ -26,6 +26,7 @@ dependencies:
   rxdart: ^0.28.0
   flutter_html: ^3.0.0-beta.2  
   cupertino_icons: ^1.0.6
+  flutter_splash_screen: ^3.0.0
 
 dev_dependencies:
   flutter_test:
