@@ -32,6 +32,13 @@ jobs:
       - name: Install dependencies
         run: flutter pub get
 
+      - name: Print environment variables
+        run: |
+          echo "ANDROID_KEYSTORE_PATH: ${{ secrets.ANDROID_KEYSTORE_PATH }}"
+          echo "ANDROID_KEYSTORE_PASSWORD: ${{ secrets.ANDROID_KEYSTORE_PASSWORD }}"
+          echo "ANDROID_KEY_ALIAS: ${{ secrets.ANDROID_KEY_ALIAS }}"
+          echo "ANDROID_KEY_PASSWORD: ${{ secrets.ANDROID_KEY_PASSWORD }}"
+
       - name: Decode keystore and save
         run: |
           echo "${{ secrets.ANDROID_KEYSTORE_BASE64 }}" | base64 --decode > android/app/my-release-key.jks
