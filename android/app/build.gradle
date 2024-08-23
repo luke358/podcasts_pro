@@ -23,6 +23,17 @@ if (flutterVersionName == null) {
     flutterVersionName = "1.0"
 }
 
+def keystoreProperties = new Properties()
+def keystorePropertiesFile = rootProject.file('key.properties')
+if (keystorePropertiesFile.exists()) {
+    keystoreProperties.load(new FileInputStream(keystorePropertiesFile))
+} else {
+    keystoreProperties.setProperty('storePassword', System.getenv('ANDROID_KEYSTORE_PASSWORD'));
+    keystoreProperties.setProperty('keyPassword', System.getenv('ANDROID_KEY_PASSWORD'));
+    keystoreProperties.setProperty('keyAlias', System.getenv('ANDROID_KEY_ALIAS'));
+    keystoreProperties.setProperty('storeFile', System.getenv('ANDROID_KEYSTORE_PATH'))
+}
+
 android {
     namespace = "com.luke358.podcasts_pro"
     compileSdk = flutter.compileSdkVersion
@@ -42,6 +53,15 @@ android {
         targetSdk = flutter.targetSdkVersion
         versionCode = flutterVersionCode.toInteger()
         versionName = flutterVersionName
+    }
+
+    signingConfigs {
+        release {
+            storeFile file(keystoreProperties['storeFile'])
+            storePassword keystoreProperties['storePassword']
+            keyAlias keystoreProperties['keyAlias']
+            keyPassword keystoreProperties['keyPassword']
+        }
     }
 
     buildTypes {
