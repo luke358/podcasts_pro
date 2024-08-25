@@ -32,38 +32,16 @@ jobs:
       - name: Install dependencies
         run: flutter pub get
 
-      - name: Print non-sensitive environment variables
+      - name: Create the Keystore
         run: |
-          echo "ANDROID_KEYSTORE_PASSWORD is set to: [REDACTED]"
-          echo "ANDROID_KEY_ALIAS is set to: [REDACTED]"
-          echo "ANDROID_KEY_PASSWORD is set to: [REDACTED]"
+          echo $KEYSTORE_BASE64 | base64 -di > android/app/keystore.jks
+          echo $KEY_PROPERTIES_BASE64 | base64 -di > android/key.properties
         env:
-          ANDROID_KEYSTORE_PASSWORD: ${{ secrets.ANDROID_KEYSTORE_PASSWORD }}
-          ANDROID_KEY_ALIAS: ${{ secrets.ANDROID_KEY_ALIAS }}
-          ANDROID_KEY_PASSWORD: ${{ secrets.ANDROID_KEY_PASSWORD }}
-
-
-      - name: Decode keystore and save
-        run: |
-          echo "${{ secrets.ANDROID_KEYSTORE_BASE64 }}" | base64 -d > android/app/my-release-key.jks
-        env:
-          ANDROID_KEYSTORE_BASE64: ${{ secrets.ANDROID_KEYSTORE_BASE64 }}
-
-      - name: Check keystore file existence
-        run: |
-          if [ -f "android/app/my-release-key.jks" ]; then
-            echo "Keystore file exists"
-          else
-            echo "Keystore file does not exist"
-          fi
+          KEYSTORE_BASE64: ${{ secrets.KEYSTORE_BASE64 }}
+          KEY_PROPERTIES_BASE64: ${{ secrets.KEY_PROPERTIES_BASE64 }}
 
       - name: Build APK
         run: flutter build apk --release
-        env:
-          ANDROID_KEYSTORE_PASSWORD: ${{ secrets.ANDROID_KEYSTORE_PASSWORD }}
-          ANDROID_KEY_PASSWORD: ${{ secrets.ANDROID_KEY_PASSWORD }}
-          ANDROID_KEY_ALIAS: ${{ secrets.ANDROID_KEY_ALIAS }}
-          ANDROID_KEYSTORE_PATH: android/app/my-release-key.jks
 
       - name: Generate Changelog
         id: changelog
