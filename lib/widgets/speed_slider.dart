@@ -101,10 +101,10 @@ class SpeedSlider extends StatelessWidget {
   final ValueChanged<double> onSpeedChanged;
 
   const SpeedSlider({
-    Key? key,
+    super.key,
     required this.initialSpeed,
     required this.onSpeedChanged,
-  }) : super(key: key);
+  });
 
   @override
   Widget build(BuildContext context) {
@@ -150,7 +150,7 @@ class SpeedSlider extends StatelessWidget {
   Widget _buildTickLabel(String label) {
     return Text(
       label,
-      style: TextStyle(fontSize: 12, color: Colors.grey),
+      style: const TextStyle(fontSize: 12, color: Colors.grey),
     );
   }
 }

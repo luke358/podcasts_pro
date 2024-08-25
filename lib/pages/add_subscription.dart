@@ -4,6 +4,8 @@ import 'package:podcasts_pro/models/subscription.dart';
 import 'package:podcasts_pro/pages/main/subscription_controller.dart';
 
 class AddSubscriptionPage extends StatefulWidget {
+  const AddSubscriptionPage({super.key});
+
   @override
   _AddSubscriptionPageState createState() => _AddSubscriptionPageState();
 }
@@ -66,7 +68,7 @@ class _AddSubscriptionPageState extends State<AddSubscriptionPage> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(title: Text('Add Subscription')),
+      appBar: AppBar(title: const Text('添加订阅')),
       body: Padding(
         padding: const EdgeInsets.all(16.0),
         child: Column(
